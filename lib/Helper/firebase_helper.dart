@@ -2,6 +2,7 @@ import 'package:chat_app/Controller/authcontroller.dart';
 import 'package:chat_app/Models/fetchChatRoomUsers.dart';
 import 'package:chat_app/Models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../Models/chatpage_variables.dart';
 
 class FireStoreHelper {
   FireStoreHelper._();
@@ -29,21 +30,21 @@ class FireStoreHelper {
     return data;
   }
 
-  bool AlreadyUser(String u1, String u2, fetchChatUserId element) {
-    if ((u1 == element.user1 || u2 == element.user2) &&
-        (u1 == element.user2 || u2 == element.user1)) {
+  bool alreadyUser(String u1, String u2, fetchChatUserId element) {
+    if ((u1 == element.user1 || u1 == element.user2) &&
+        (u2 == element.user1 || u2 == element.user2)) {
       if (u1 == element.user1 && u2 == element.user2) {
         AuthController.currentChatRoomOfUser = "${u1}_$u2";
+      } else {
+        AuthController.currentChatRoomOfUser = "${u2}_$u1";
       }
       return true;
     }
     return false;
   }
 
-
   Future<void> createChatRoomId(String u1, String u2) async {
-    List<fetchChatUserId> fetchChatroomId = [];
-
+    List<fetchChatUserId> fetchedChatsId = [];
     QuerySnapshot querySnapshot =
         await firebaseFireStore.collection('chats').get();
 
@@ -54,35 +55,70 @@ class FireStoreHelper {
       await firebaseFireStore
           .collection('chats')
           .doc(AuthController.currentChatRoomOfUser)
-          .set(
-        {'chat id': AuthController.currentChatRoomOfUser},
-      );
+          .set({
+        'chat_id': AuthController.currentChatRoomOfUser,
+      });
     } else {
-      fetchChatroomId = data.map((e) {
-        String fetchUser1 = e['chat id'].toString().split("_")[0];
-        String fetchUser2 = e['chat id'].toString().split("_")[1];
+      fetchedChatsId = data.map((e) {
+        String fetchUser1 = e['chat_id'].toString().split("_")[0];
+        String fetchUser2 = e['chat_id'].toString().split("_")[1];
         return fetchChatUserId(user1: fetchUser1, user2: fetchUser2);
       }).toList();
-    }
-    bool alreadyExists = false;
-    for (var e in fetchChatroomId) {
-      alreadyExists = AlreadyUser(u1, u2, e);
-      if (alreadyExists) {
-        break;
+
+      for (var e in fetchedChatsId) {
+        print("u1 = ${e.user1}");
+        print("u2 = ${e.user2}");
       }
-    }
-    if (alreadyExists == false) {
-      AuthController.currentChatRoomOfUser = "${u1}_$u2";
-      await firebaseFireStore
-          .collection('chats')
-          .doc(AuthController.currentChatRoomOfUser)
-          .set(
-        {'chat id': AuthController.currentChatRoomOfUser},
-      );
+      bool? alreadyId = false;
+      for (var element in fetchedChatsId) {
+        alreadyId = alreadyUser(u1, u2, element);
+        if (alreadyId) {
+          break;
+        }
+      }
+      if (alreadyId == false) {
+        AuthController.currentChatRoomOfUser = "${u1}_$u2";
+        await firebaseFireStore
+            .collection('chats')
+            .doc(AuthController.currentChatRoomOfUser)
+            .set({
+          'chat_id': AuthController.currentChatRoomOfUser,
+        });
+        print(AuthController.currentChatRoomOfUser);
+        print("----------_____________");
+      }
     }
   }
 
-  getMessage() {}
+  List<getMessageData> getMessageDataList(QuerySnapshot snapshot) {
+    return snapshot.docs.map((e) {
+      return getMessageData.fromMap(e.data() as Map<String, dynamic>);
+    }).toList();
+  }
 
-  sendMessage() {}
+  Stream<List<getMessageData>> getMessage() {
+    print('current Chat Room ID : ${AuthController.currentChatRoomOfUser}');
+    return firebaseFireStore
+        .collection('chats')
+        .doc(AuthController.currentChatRoomOfUser)
+        .collection('messages')
+        .orderBy('time', descending: false)
+        .snapshots()
+        .map((snapshot) => getMessageDataList(snapshot));
+  }
+
+  Future<void> sendMessage(
+      String sender, String receiver, String message) async {
+    firebaseFireStore
+        .collection('chats')
+        .doc(AuthController.currentChatRoomOfUser)
+        .collection('messages')
+        .doc()
+        .set({
+      'sender': sender,
+      'receiver': receiver,
+      'messages': message,
+      'time': DateTime.now(),
+    });
+  }
 }

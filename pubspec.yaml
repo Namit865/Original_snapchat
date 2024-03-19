@@ -44,7 +44,6 @@ dependencies:
   cloud_firestore:
   google_sign_in:
   salomon_bottom_bar:
-  zego_uikit_prebuilt_call:
   shared_preferences:
 
 dev_dependencies:

@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
-import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 import '../Controller/authcontroller.dart';
 import '../Models/user.dart';
 import 'firebase_helper.dart';
@@ -60,15 +58,6 @@ class AuthHelper {
         return '${e.code}';
       }
     }
-
-    ZegoUIKitPrebuiltCallInvitationService().init(
-      appID: 187770258,
-      appSign:
-          "431f400a7b8b1f0ae5f81d1269520be600b3830d4b1a6a164313532136e7af0d",
-      userID: AuthController.currentUser!.email!,
-      userName: AuthController.currentUser!.email!,
-      plugins: [ZegoUIKitSignalingPlugin()],
-    );
     return null;
   }
 

@@ -2,36 +2,18 @@ import 'package:chat_app/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
-import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
-
-import 'Views/splash screen/splashscreen.dart';
-
-final navigatorKey = GlobalKey<NavigatorState>();
+import 'Views/splash screen/Splash Screens/splashscreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  ZegoUIKitPrebuiltCallInvitationService().setNavigatorKey(navigatorKey);
-
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  ZegoUIKit().initLog().then((value) {
-    ZegoUIKitPrebuiltCallInvitationService().useSystemCallingUI(
-      [ZegoUIKitSignalingPlugin()],
-    );
-
-    runApp(MyApp(
-      navigatorKey: navigatorKey,
-    ));
-  });
+  runApp(
+    const MyApp(),
+  );
 }
 
 class MyApp extends StatefulWidget {
-  final GlobalKey<NavigatorState> navigatorKey;
-
-  const MyApp({
-    super.key,
-    required this.navigatorKey,
-  });
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -40,8 +22,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      navigatorKey: widget.navigatorKey,
+    return const GetMaterialApp(
       debugShowCheckedModeBanner: false,
       home: SplashScreen(),
     );

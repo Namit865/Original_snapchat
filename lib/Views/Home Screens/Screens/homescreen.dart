@@ -1,16 +1,15 @@
 import 'package:chat_app/Controller/authcontroller.dart';
 import 'package:chat_app/Helper/auth_helper.dart';
 import 'package:chat_app/Helper/firebase_helper.dart';
-import 'package:chat_app/Views/Login%20Screens/HomeScreen%20Controller/chatpage.dart';
-import 'package:chat_app/Views/Login%20Screens/HomeScreen%20Controller/stories_page.dart';
+import 'package:chat_app/Views/Home%20Screens/Screens/stories_page.dart';
 import 'package:chat_app/Views/Login%20Screens/login_screen.dart';
-import 'package:chat_app/Views/camera_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
-
-import 'Login Screens/HomeScreen Controller/homescreen_controller.dart';
+import '../Controller/homescreen_controller.dart';
+import 'camera_screen.dart';
+import 'chatpage.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({

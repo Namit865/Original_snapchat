@@ -1,4 +1,4 @@
-import 'package:chat_app/Views/splash%20screen/splash_controller.dart';
+import 'package:chat_app/Views/splash%20screen/Splash%20Controller/splash_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
