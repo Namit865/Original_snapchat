@@ -84,8 +84,6 @@ class FireStoreHelper {
             .set({
           'chat_id': AuthController.currentChatRoomOfUser,
         });
-        print(AuthController.currentChatRoomOfUser);
-        print("----------_____________");
       }
     }
   }
@@ -96,15 +94,13 @@ class FireStoreHelper {
     }).toList();
   }
 
-  Stream<List<getMessageData>> getMessage() {
-    print('current Chat Room ID : ${AuthController.currentChatRoomOfUser}');
+  Stream<QuerySnapshot<Map<String, dynamic>>> getMessages() {
     return firebaseFireStore
         .collection('chats')
         .doc(AuthController.currentChatRoomOfUser)
         .collection('messages')
         .orderBy('time', descending: false)
-        .snapshots()
-        .map((snapshot) => getMessageDataList(snapshot));
+        .snapshots();
   }
 
   Future<void> sendMessage(
@@ -117,7 +113,7 @@ class FireStoreHelper {
         .set({
       'sender': sender,
       'receiver': receiver,
-      'messages': message,
+      'message': message,
       'time': DateTime.now(),
     });
   }

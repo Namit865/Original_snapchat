@@ -24,6 +24,12 @@ class _HomeScreenState extends State<HomeScreen> {
   HomePageController controller = Get.put(HomePageController());
 
   @override
+  void initState() {
+    super.initState();
+    controller = Get.put(HomePageController());
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Obx(
@@ -69,11 +75,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       leading: InkWell(
-                          onTap: () {
-                            AuthHelper.authHelper.signOut();
-                            Get.offAll(() => LoginScreen());
-                          },
-                          child: Icon(Icons.logout)),
+                        onTap: () {
+                          AuthHelper.authHelper.signOut();
+                          Get.offAll(
+                            () => LoginScreen(),
+                          );
+                        },
+                        child: const Icon(Icons.logout),
+                      ),
                     ),
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
@@ -88,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         AuthController.currentUser!.email!,
                                         user.email);
                                 Get.to(
-                                  () => chatPage(
+                                  () => ChatPage(
                                     userName: user.name,
                                     userEmail: user.email,
                                   ),
@@ -116,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     context: context,
                                     builder: (context) {
                                       return ProfileDialog(
-                                        title: user.name,
+                                        title: 'profile',
                                       );
                                     },
                                   );
@@ -188,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
 class ProfileDialog extends StatelessWidget {
   String title;
 
-  ProfileDialog({super.key, required this.title});
+  ProfileDialog({Key? key, required this.title});
 
   @override
   Widget build(BuildContext context) {
