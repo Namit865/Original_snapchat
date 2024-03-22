@@ -1,5 +1,6 @@
 import 'package:chat_app/Controller/authcontroller.dart';
 import 'package:chat_app/Models/chatpage_variables.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../Helper/firebase_helper.dart';
@@ -48,59 +49,70 @@ class _ChatPageState extends State<ChatPage> {
           ],
         ),
       ),
-      body: StreamBuilder(
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: FireStoreHelper.fireStoreHelper.getMessages(),
           builder: (context, snapshot) {
+            List<getMessageData> fetchData = [];
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
                 child: CircularProgressIndicator(),
               );
             } else {
-              List<getMessageData> fetchData = snapshot.data!.docs
-                  .map(
-                    (e) => getMessageData(
-                      sender: e['sender'],
-                      message: e['message'],
-                      receiver: e['receiver'],
-                      time: e['time'],
-                    ),
-                  )
-                  .toList();
+              fetchData = snapshot.data!.docs.map(
+                (e) {
+                  DateTime dateTime = (e['time'] as Timestamp).toDate();
+                  String formattedDateTime =
+                      DateFormat('MMM dd, yyyy - hh:mm a').format(dateTime);
+                  return getMessageData(
+                    sender: e['sender'] ?? '',
+                    message:
+                        e.data().containsKey('message') ? e['message'] : '',
+                    receiver: e['receiver'] ?? '',
+                    time: formattedDateTime,
+                  );
+                },
+              ).toList();
               return Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Expanded(
-                    child: ListView.builder(
+                    child: ListView(
                       controller: scrollController,
                       reverse: true,
-                      itemCount: fetchData.length,
-                      itemBuilder: (context, index) {
-                        final messageData = fetchData[index];
-                        return Row(
-                          mainAxisAlignment: (messageData.sender ==
-                                  AuthController.currentUser!.email)
-                              ? MainAxisAlignment.start
-                              : MainAxisAlignment.end,
-                          children: [
-                            Chip(
-                              label: Column(
-                                crossAxisAlignment: (messageData.sender ==
-                                        AuthController.currentUser!.email)
-                                    ? CrossAxisAlignment.start
-                                    : CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    messageData.message,
-                                    style: const TextStyle(fontSize: 17),
+                      children: fetchData
+                          .map(
+                            (e) => Row(
+                              mainAxisAlignment: (e.receiver ==
+                                      AuthController.currentUser!.email)
+                                  ? MainAxisAlignment.start
+                                  : MainAxisAlignment.end,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 10,left: 10,bottom: 5,top: 5),
+                                  child: Chip(
+                                    label: Column(
+                                      crossAxisAlignment: (e.sender ==
+                                              AuthController.currentUser!.email)
+                                          ? CrossAxisAlignment.start
+                                          : CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          e.message,
+                                          style: const TextStyle(fontSize: 17),
+                                        ),
+                                        Text(
+                                          e.time,
+                                          textAlign: TextAlign.end,
+                                          style: const TextStyle(fontSize: 11),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  Text(
-                                    '${DateFormat.H().format(messageData.time as DateTime)}:${DateFormat.m().format(messageData.time as DateTime)}', // Formatting time
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        );
-                      },
+                          )
+                          .toList(),
                     ),
                   ),
                   Padding(
@@ -142,14 +154,14 @@ class _ChatPageState extends State<ChatPage> {
                               color: Colors.white,
                               icon: const Icon(Icons.send, size: 30),
                               onPressed: () async {
-                                FireStoreHelper.fireStoreHelper
-                                    .sendMessage(
-                                        AuthController.currentUser!.email!,
-                                        widget.userEmail,
-                                        _controller.text)
-                                    .then((value) {
-                                  _controller.clear();
-                                });
+                                if (_controller.text.trim().isNotEmpty) {
+                                  await FireStoreHelper.fireStoreHelper
+                                      .sendMessage(
+                                          AuthController.currentUser!.email!,
+                                          widget.userEmail,
+                                          _controller.text);
+                                }
+                                _controller.clear();
                                 scrollController.animateTo(
                                     scrollController.position.maxScrollExtent,
                                     duration: const Duration(milliseconds: 300),

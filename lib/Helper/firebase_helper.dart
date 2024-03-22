@@ -44,55 +44,20 @@ class FireStoreHelper {
   }
 
   Future<void> createChatRoomId(String u1, String u2) async {
-    List<fetchChatUserId> fetchedChatsId = [];
-    QuerySnapshot querySnapshot =
-        await firebaseFireStore.collection('chats').get();
+    List<String> sortedUserIds = [u1, u2]..sort();
+    String chatRoomId = sortedUserIds.join('_');
 
-    List<QueryDocumentSnapshot> data = querySnapshot.docs;
+    DocumentSnapshot chatRoomSnapshot =
+    await firebaseFireStore.collection('chats').doc(chatRoomId).get();
 
-    if (data.isEmpty) {
-      AuthController.currentChatRoomOfUser = "${u1}_$u2";
-      await firebaseFireStore
-          .collection('chats')
-          .doc(AuthController.currentChatRoomOfUser)
-          .set({
-        'chat_id': AuthController.currentChatRoomOfUser,
+    if (!chatRoomSnapshot.exists) {
+      await firebaseFireStore.collection('chats').doc(chatRoomId).set({
+        'chat_id': chatRoomId,
       });
-    } else {
-      fetchedChatsId = data.map((e) {
-        String fetchUser1 = e['chat_id'].toString().split("_")[0];
-        String fetchUser2 = e['chat_id'].toString().split("_")[1];
-        return fetchChatUserId(user1: fetchUser1, user2: fetchUser2);
-      }).toList();
-
-      for (var e in fetchedChatsId) {
-        print("u1 = ${e.user1}");
-        print("u2 = ${e.user2}");
-      }
-      bool? alreadyId = false;
-      for (var element in fetchedChatsId) {
-        alreadyId = alreadyUser(u1, u2, element);
-        if (alreadyId) {
-          break;
-        }
-      }
-      if (alreadyId == false) {
-        AuthController.currentChatRoomOfUser = "${u1}_$u2";
-        await firebaseFireStore
-            .collection('chats')
-            .doc(AuthController.currentChatRoomOfUser)
-            .set({
-          'chat_id': AuthController.currentChatRoomOfUser,
-        });
-      }
     }
+    AuthController.currentChatRoomOfUser = chatRoomId;
   }
 
-  List<getMessageData> getMessageDataList(QuerySnapshot snapshot) {
-    return snapshot.docs.map((e) {
-      return getMessageData.fromMap(e.data() as Map<String, dynamic>);
-    }).toList();
-  }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> getMessages() {
     return firebaseFireStore

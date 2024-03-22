@@ -91,8 +91,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           return Card(
                             elevation: 3,
                             child: ListTile(
-                              onTap: () {
-                                FireStoreHelper.fireStoreHelper
+                              onTap: () async {
+                                await FireStoreHelper.fireStoreHelper
                                     .createChatRoomId(
                                         AuthController.currentUser!.email!,
                                         user.email);
@@ -194,11 +194,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class ProfileDialog extends StatelessWidget {
+class ProfileDialog extends StatefulWidget {
   String title;
 
-  ProfileDialog({Key? key, required this.title});
+  ProfileDialog({super.key, Key, required this.title});
 
+  @override
+  State<ProfileDialog> createState() => _ProfileDialogState();
+}
+
+class _ProfileDialogState extends State<ProfileDialog> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -229,7 +234,7 @@ class ProfileDialog extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            title,
+            widget.title,
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 18,
