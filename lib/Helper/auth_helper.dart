@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:chat_app/Views/Login%20Screens/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -14,11 +15,11 @@ class AuthHelper {
   static FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   Future<void> signOut() async {
-    try {
-      await firebaseAuth.signOut();
-    } catch (error) {
-      print("=============$error=============");
-    }
+    await firebaseAuth.signOut().then(
+          (value) => Get.offAll(
+            () => const LoginScreen(),
+          ),
+        );
   }
 
   static Future<String?> SignupwithEmailandPassword({

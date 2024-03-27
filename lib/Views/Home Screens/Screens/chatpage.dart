@@ -1,7 +1,9 @@
 import 'package:chat_app/Controller/authcontroller.dart';
 import 'package:chat_app/Models/chatpage_variables.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../Helper/firebase_helper.dart';
 
@@ -33,7 +35,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.yellow,
+        backgroundColor: const Color(0xffFFF375),
         title: Row(
           children: [
             const CircleAvatar(
@@ -76,34 +78,60 @@ class _ChatPageState extends State<ChatPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Expanded(
-                    child: ListView(
-                      controller: scrollController,
-                      reverse: true,
-                      children: fetchData
-                          .map(
-                            (e) => Row(
+                    child: GestureDetector(
+                      onHorizontalDragEnd: (details) {
+                        if (details.primaryVelocity! > 0) {
+                          Get.back();
+                        }
+                      },
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage("asset/audi.jpeg"),
+                            fit: BoxFit.cover,
+                            filterQuality: FilterQuality.high,
+                          ),
+                        ),
+                        child: ListView(
+                          reverse: false,
+                          controller: scrollController,
+                          children: fetchData
+                              .map(
+                                (e) => Row(
                               mainAxisAlignment: (e.receiver ==
-                                      AuthController.currentUser!.email)
+                                  AuthController.currentUser!.email)
                                   ? MainAxisAlignment.start
                                   : MainAxisAlignment.end,
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.only(right: 10,left: 10,bottom: 5,top: 5),
+                                  padding: const EdgeInsets.only(
+                                      right: 10, left: 10, bottom: 5, top: 5),
                                   child: Chip(
+                                    side: const BorderSide(
+                                      width: 1,
+                                      color: Colors.white,
+                                    ),
+                                    elevation: 15,
                                     label: Column(
                                       crossAxisAlignment: (e.sender ==
-                                              AuthController.currentUser!.email)
+                                          AuthController.currentUser!.email)
                                           ? CrossAxisAlignment.start
                                           : CrossAxisAlignment.end,
                                       children: [
-                                        Text(
-                                          e.message,
-                                          style: const TextStyle(fontSize: 17),
-                                        ),
-                                        Text(
-                                          e.time,
-                                          textAlign: TextAlign.end,
-                                          style: const TextStyle(fontSize: 11),
+                                        RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: e.message,
+                                                style: const TextStyle(
+                                                    color: Colors.black, fontSize: 16),
+                                              ),
+                                              TextSpan(
+                                                  text: e.time.split("-")[1],
+                                                  style: const TextStyle(
+                                                      color: Colors.black54)),
+                                            ],
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -112,11 +140,13 @@ class _ChatPageState extends State<ChatPage> {
                               ],
                             ),
                           )
-                          .toList(),
+                              .toList(),
+                        ),
+                      ),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(15.0),
+                    padding: const EdgeInsets.all(10.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -124,13 +154,11 @@ class _ChatPageState extends State<ChatPage> {
                           flex: 6,
                           child: TextFormField(
                             scribbleEnabled: true,
-                            autofocus: true,
                             cursorColor: Colors.yellow,
                             controller: _controller,
                             keyboardType: TextInputType.text,
                             decoration: InputDecoration(
                               isDense: true,
-                              isCollapsed: false,
                               hintText: "Send Message",
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(35),
@@ -147,7 +175,7 @@ class _ChatPageState extends State<ChatPage> {
                             width: 55,
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.white),
-                              color: Colors.yellow,
+                              color: const Color(0xffFFF375),
                               borderRadius: BorderRadius.circular(30),
                             ),
                             child: IconButton(

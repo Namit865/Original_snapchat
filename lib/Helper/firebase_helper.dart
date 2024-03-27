@@ -1,8 +1,8 @@
 import 'package:chat_app/Controller/authcontroller.dart';
+import 'package:chat_app/Models/chatroom.dart';
 import 'package:chat_app/Models/fetchChatRoomUsers.dart';
 import 'package:chat_app/Models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../Models/chatpage_variables.dart';
 
 class FireStoreHelper {
   FireStoreHelper._();
@@ -48,7 +48,7 @@ class FireStoreHelper {
     String chatRoomId = sortedUserIds.join('_');
 
     DocumentSnapshot chatRoomSnapshot =
-    await firebaseFireStore.collection('chats').doc(chatRoomId).get();
+        await firebaseFireStore.collection('chats').doc(chatRoomId).get();
 
     if (!chatRoomSnapshot.exists) {
       await firebaseFireStore.collection('chats').doc(chatRoomId).set({
@@ -57,7 +57,6 @@ class FireStoreHelper {
     }
     AuthController.currentChatRoomOfUser = chatRoomId;
   }
-
 
   Stream<QuerySnapshot<Map<String, dynamic>>> getMessages() {
     return firebaseFireStore
@@ -80,6 +79,8 @@ class FireStoreHelper {
       'receiver': receiver,
       'message': message,
       'time': DateTime.now(),
+      'read': false,
     });
   }
+
 }

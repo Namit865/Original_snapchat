@@ -1,13 +1,12 @@
 import 'package:chat_app/Controller/authcontroller.dart';
-import 'package:chat_app/Helper/auth_helper.dart';
 import 'package:chat_app/Helper/firebase_helper.dart';
 import 'package:chat_app/Views/Home%20Screens/Screens/stories_page.dart';
-import 'package:chat_app/Views/Login%20Screens/login_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import '../Controller/homescreen_controller.dart';
+import '../Setting Screen/setting_screen.dart';
 import 'camera_screen.dart';
 import 'chatpage.dart';
 
@@ -74,15 +73,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      leading: InkWell(
-                        onTap: () {
-                          AuthHelper.authHelper.signOut();
-                          Get.offAll(
-                            () => LoginScreen(),
-                          );
-                        },
-                        child: const Icon(Icons.logout),
-                      ),
+                      actions: [
+                        IconButton(
+                          onPressed: () {
+                            Get.to(
+                              () => const settingPage(),
+                            );
+                          },
+                          icon: const Icon(CupertinoIcons.settings),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                      ],
                     ),
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
@@ -90,60 +93,76 @@ class _HomeScreenState extends State<HomeScreen> {
                           final user = controller.fetchedAllUserData[index];
                           return Card(
                             elevation: 3,
-                            child: ListTile(
-                              onTap: () async {
+                            child: GestureDetector(
+                              onHorizontalDragUpdate: (details) async {
                                 await FireStoreHelper.fireStoreHelper
                                     .createChatRoomId(
                                         AuthController.currentUser!.email!,
                                         user.email);
                                 Get.to(
-                                  () => ChatPage(
+                                  transition: Transition.cupertino,
+                                  ChatPage(
                                     userName: user.name,
                                     userEmail: user.email,
                                   ),
                                 );
                               },
-                              title: Text(
-                                user.name,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 18),
-                              ),
-                              subtitle: Text(user.email),
-                              trailing: const Icon(
-                                  Icons.chat_bubble_outline_outlined,
-                                  color: Colors.black54),
-                              leading: InkWell(
-                                onTap: () {
-                                  showModalBottomSheet(
-                                    isDismissible: true,
-                                    showDragHandle: true,
-                                    elevation: 10,
-                                    useSafeArea: true,
-                                    barrierLabel: user.name,
-                                    enableDrag: true,
-                                    isScrollControlled: true,
-                                    context: context,
-                                    builder: (context) {
-                                      return ProfileDialog(
-                                        title: 'profile',
-                                      );
-                                    },
+                              child: ListTile(
+                                onTap: () async {
+                                  await FireStoreHelper.fireStoreHelper
+                                      .createChatRoomId(
+                                          AuthController.currentUser!.email!,
+                                          user.email);
+                                  Get.to(
+                                    () => ChatPage(
+                                      userName: user.name,
+                                      userEmail: user.email,
+                                    ),
                                   );
                                 },
-                                child: CircleAvatar(
-                                  backgroundImage: (AuthController
-                                              .currentUser?.photoURL !=
-                                          null)
-                                      ? NetworkImage(
-                                          AuthController.currentUser!.photoURL!)
-                                      : null,
-                                  radius: 25,
-                                  child: AuthController.currentUser?.photoURL ==
-                                          null
-                                      ? const Icon(
-                                          Icons.person,
-                                        )
-                                      : null,
+                                title: Text(
+                                  user.name,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18),
+                                ),
+                                subtitle: Text(user.email),
+                                trailing: const Icon(
+                                    Icons.chat_bubble_outline_outlined,
+                                    color: Colors.black54),
+                                leading: InkWell(
+                                  onLongPress: () {
+                                    showModalBottomSheet(
+                                      isDismissible: true,
+                                      showDragHandle: true,
+                                      elevation: 10,
+                                      useSafeArea: true,
+                                      barrierLabel: user.name,
+                                      enableDrag: true,
+                                      isScrollControlled: true,
+                                      context: context,
+                                      builder: (context) {
+                                        return profileDialogue(
+                                            name: user.name, email: user.email);
+                                      },
+                                    );
+                                  },
+                                  child: CircleAvatar(
+                                    backgroundImage:
+                                        (AuthController.currentUser?.photoURL !=
+                                                null)
+                                            ? NetworkImage(AuthController
+                                                .currentUser!.photoURL!)
+                                            : null,
+                                    radius: 25,
+                                    child:
+                                        AuthController.currentUser?.photoURL ==
+                                                null
+                                            ? const Icon(
+                                                Icons.person,
+                                              )
+                                            : null,
+                                  ),
                                 ),
                               ),
                             ),
@@ -192,20 +211,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
 
-class ProfileDialog extends StatefulWidget {
-  String title;
-
-  ProfileDialog({super.key, Key, required this.title});
-
-  @override
-  State<ProfileDialog> createState() => _ProfileDialogState();
-}
-
-class _ProfileDialogState extends State<ProfileDialog> {
-  @override
-  Widget build(BuildContext context) {
+  profileDialogue({required String name, required String email}) {
     return Container(
       height: 400,
       width: MediaQuery.of(context).size.width,
@@ -234,7 +241,7 @@ class _ProfileDialogState extends State<ProfileDialog> {
           ),
           const SizedBox(height: 20),
           Text(
-            widget.title,
+            name,
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 18,
@@ -246,14 +253,32 @@ class _ProfileDialogState extends State<ProfileDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              InkWell(onTap: () {}, child: const Icon(Icons.call, size: 35)),
-              InkWell(onTap: () {}, child: const Icon(Icons.message, size: 35)),
               InkWell(
-                  onTap: () {},
-                  child: const Icon(Icons.video_call_outlined, size: 35)),
+                onTap: () {},
+                child: const Icon(Icons.call, size: 35),
+              ),
               InkWell(
-                  onTap: () {},
-                  child: const Icon(Icons.info_outline, size: 35)),
+                onTap: () async {
+                  await FireStoreHelper.fireStoreHelper.createChatRoomId(
+                      AuthController.currentUser!.email!, email);
+                  Get.to(
+                    transition: Transition.cupertino,
+                    () => ChatPage(
+                      userName: name,
+                      userEmail: email,
+                    ),
+                  );
+                },
+                child: const Icon(Icons.message, size: 35),
+              ),
+              InkWell(
+                onTap: () {},
+                child: const Icon(Icons.video_call_outlined, size: 35),
+              ),
+              InkWell(
+                onTap: () {},
+                child: const Icon(Icons.info_outline, size: 35),
+              ),
             ],
           ),
         ],
