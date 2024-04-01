@@ -1,5 +1,4 @@
 import 'package:chat_app/Controller/authcontroller.dart';
-import 'package:chat_app/Models/chatroom.dart';
 import 'package:chat_app/Models/fetchChatRoomUsers.dart';
 import 'package:chat_app/Models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,13 +8,25 @@ class FireStoreHelper {
 
   static final FireStoreHelper fireStoreHelper = FireStoreHelper._();
 
-  FirebaseFirestore firebaseFireStore = FirebaseFirestore.instance;
+  final FirebaseFirestore firebaseFireStore = FirebaseFirestore.instance;
 
   Future<void> addUserInFirebaseFireStore(userData user) async {
     firebaseFireStore.collection('user').add({
       'name': user.name,
       'email': user.email,
       'password': user.password,
+    });
+  }
+
+  Stream<List<Map<String, dynamic>>> getAllMessageData() {
+    return firebaseFireStore.collection("chats").snapshots().map((event) {
+      List<Map<String, String>> messages = [];
+      event.docs.forEach((e) {
+        String chatId = e.id;
+        String lastMessage = e['lastMessage'] ?? '';
+        messages.add({'chatId': chatId, 'lastMessage': lastMessage});
+      });
+      return messages;
     });
   }
 
@@ -83,4 +94,31 @@ class FireStoreHelper {
     });
   }
 
+  getAllLastMessages(data) async {
+    List<Map<String, String>> lastMessages = [];
+
+    QuerySnapshot snapshot = await firebaseFireStore.collection('chats').get();
+
+    for (var doc in snapshot.docs) {
+      String chatRoomId = doc['chat_id'];
+      QuerySnapshot messageSnapshot = await firebaseFireStore
+          .collection('chats')
+          .doc(chatRoomId)
+          .collection('messages')
+          .orderBy('time', descending: true)
+          .limit(1)
+          .get();
+
+      if (messageSnapshot.docs.isNotEmpty) {
+        String lastMessage = messageSnapshot.docs.first.get('message');
+        Map<String, String> messageData = {
+          'chatId': chatRoomId,
+          'lastMessage': lastMessage,
+        };
+        lastMessages.add(messageData);
+      }
+    }
+
+    return lastMessages;
+  }
 }

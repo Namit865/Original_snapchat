@@ -3,6 +3,7 @@ import 'package:chat_app/Helper/firebase_helper.dart';
 import 'package:chat_app/Views/Home%20Screens/Screens/stories_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import '../Controller/homescreen_controller.dart';
@@ -21,12 +22,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   HomePageController controller = Get.put(HomePageController());
-
-  @override
-  void initState() {
-    super.initState();
-    controller = Get.put(HomePageController());
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,88 +82,108 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final user = controller.fetchedAllUserData[index];
-                          return Card(
-                            elevation: 3,
-                            child: GestureDetector(
-                              onHorizontalDragUpdate: (details) async {
-                                await FireStoreHelper.fireStoreHelper
-                                    .createChatRoomId(
-                                        AuthController.currentUser!.email!,
-                                        user.email);
-                                Get.to(
-                                  transition: Transition.cupertino,
-                                  ChatPage(
-                                    userName: user.name,
-                                    userEmail: user.email,
-                                  ),
-                                );
-                              },
-                              child: ListTile(
-                                onTap: () async {
-                                  await FireStoreHelper.fireStoreHelper
-                                      .createChatRoomId(
-                                          AuthController.currentUser!.email!,
-                                          user.email);
-                                  Get.to(
-                                    () => ChatPage(
-                                      userName: user.name,
-                                      userEmail: user.email,
-                                    ),
-                                  );
+                    StreamBuilder(
+                      stream:
+                          FireStoreHelper.fireStoreHelper.getAllMessageData(),
+                      builder: (BuildContext context,
+                              AsyncSnapshot<dynamic> snapshot) =>
+                          SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final user = controller.fetchedAllUserData[index];
+                            return Card(
+                              elevation: 3,
+                              child: GestureDetector(
+                                onHorizontalDragUpdate: (details) async {
+                                  if (details.delta.dx < 0) {
+                                    await FireStoreHelper.fireStoreHelper
+                                        .createChatRoomId(
+                                            AuthController.currentUser!.email!,
+                                            user.email);
+                                    Get.to(
+                                      transition: Transition.cupertino,
+                                      ChatPage(
+                                        userName: user.name,
+                                        userEmail: user.email,
+                                      ),
+                                    );
+                                  }
                                 },
-                                title: Text(
-                                  user.name,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18),
-                                ),
-                                subtitle: Text(user.email),
-                                trailing: const Icon(
-                                    Icons.chat_bubble_outline_outlined,
-                                    color: Colors.black54),
-                                leading: InkWell(
-                                  onLongPress: () {
-                                    showModalBottomSheet(
-                                      isDismissible: true,
-                                      showDragHandle: true,
-                                      elevation: 10,
-                                      useSafeArea: true,
-                                      barrierLabel: user.name,
-                                      enableDrag: true,
-                                      isScrollControlled: true,
-                                      context: context,
-                                      builder: (context) {
-                                        return profileDialogue(
-                                            name: user.name, email: user.email);
-                                      },
+                                child: ListTile(
+                                  onTap: () async {
+                                    await FireStoreHelper.fireStoreHelper
+                                        .createChatRoomId(
+                                            AuthController.currentUser!.email!,
+                                            user.email);
+                                    Get.to(
+                                      () => ChatPage(
+                                        userName: user.name,
+                                        userEmail: user.email,
+                                      ),
                                     );
                                   },
-                                  child: CircleAvatar(
-                                    backgroundImage:
-                                        (AuthController.currentUser?.photoURL !=
-                                                null)
-                                            ? NetworkImage(AuthController
-                                                .currentUser!.photoURL!)
-                                            : null,
-                                    radius: 25,
-                                    child:
-                                        AuthController.currentUser?.photoURL ==
-                                                null
-                                            ? const Icon(
-                                                Icons.person,
-                                              )
-                                            : null,
+                                  title: Text(
+                                    user.name,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18),
+                                  ),
+                                  subtitle: Text(
+                                    controller.lastMessages.firstWhere(
+                                            (message) =>
+                                                message['chatId'] ==
+                                                    "${AuthController.currentUser!.email}_${user.email}" ||
+                                                message['chatId'] ==
+                                                    "${user.email}_${AuthController.currentUser!.email}",
+                                            orElse: () => {
+                                                  'lastMessage': ''
+                                                })['lastMessage'] ??
+                                        '',
+                                  ),
+                                  trailing: const Icon(
+                                      Icons.chat_bubble_outline_outlined,
+                                      color: Colors.black54),
+                                  leading: InkWell(
+                                    onLongPress: () {
+                                      showModalBottomSheet(
+                                        isDismissible: true,
+                                        showDragHandle: true,
+                                        elevation: 10,
+                                        useSafeArea: true,
+                                        barrierLabel: user.name,
+                                        enableDrag: true,
+                                        isScrollControlled: true,
+                                        context: context,
+                                        builder: (context) {
+                                          return profileDialogue(
+                                              name: user.name,
+                                              email: user.email);
+                                        },
+                                      );
+                                    },
+                                    child: CircleAvatar(
+                                      backgroundImage: (AuthController
+                                                  .currentUser?.photoURL !=
+                                              null)
+                                          ? NetworkImage(AuthController
+                                              .currentUser!.photoURL!)
+                                          : null,
+                                      radius: 25,
+                                      child: AuthController
+                                                  .currentUser?.photoURL ==
+                                              null
+                                          ? const Icon(
+                                              Icons.person,
+                                            )
+                                          : null,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          );
-                        },
-                        childCount: controller.fetchedAllUserData.length,
+                            );
+                          },
+                          childCount: controller.fetchedAllUserData.length,
+                        ),
                       ),
                     ),
                   ],

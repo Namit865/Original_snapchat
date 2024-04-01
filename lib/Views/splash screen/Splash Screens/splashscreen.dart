@@ -2,12 +2,17 @@ import 'package:chat_app/Views/splash%20screen/Splash%20Controller/splash_contro
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({Key? key}) : super(key: key);
 
   @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  final splashController controller = Get.put(splashController());
+  @override
   Widget build(BuildContext context) {
-    Get.put(splashController());
     return Scaffold(
       body: Container(
         color: Color(0xffFFFC00),

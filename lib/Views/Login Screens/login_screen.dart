@@ -10,7 +10,7 @@ import '../Home Screens/Screens/homescreen.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  Duration get logintime => const Duration(milliseconds: 3000);
+  Duration get logintime => const Duration(milliseconds: 700);
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +51,7 @@ class LoginScreen extends StatelessWidget {
               icon: FontAwesomeIcons.google,
             ),
             LoginProvider(
+
               label: "Phone Number",
               icon: FontAwesomeIcons.phone,
               button: Buttons.anonymous,

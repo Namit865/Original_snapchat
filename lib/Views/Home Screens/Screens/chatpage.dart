@@ -1,10 +1,8 @@
-import 'package:chat_app/Controller/authcontroller.dart';
-import 'package:chat_app/Models/chatpage_variables.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:chat_app/Models/chatpage_variables.dart';
+import 'package:chat_app/Controller/authcontroller.dart';
 import '../../../Helper/firebase_helper.dart';
 
 class ChatPage extends StatefulWidget {
@@ -26,12 +24,6 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    scrollController = ScrollController();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -46,7 +38,8 @@ class _ChatPageState extends State<ChatPage> {
             ),
             Text(
               widget.userName,
-              style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
+              style:
+              const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -61,14 +54,14 @@ class _ChatPageState extends State<ChatPage> {
               );
             } else {
               fetchData = snapshot.data!.docs.map(
-                (e) {
+                    (e) {
                   DateTime dateTime = (e['time'] as Timestamp).toDate();
                   String formattedDateTime =
-                      DateFormat('MMM dd, yyyy - hh:mm a').format(dateTime);
+                  DateFormat('MMM dd, yyyy - hh:mm a').format(dateTime);
                   return getMessageData(
                     sender: e['sender'] ?? '',
                     message:
-                        e.data().containsKey('message') ? e['message'] : '',
+                    e.data().containsKey('message') ? e['message'] : '',
                     receiver: e['receiver'] ?? '',
                     time: formattedDateTime,
                   );
@@ -78,70 +71,69 @@ class _ChatPageState extends State<ChatPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Expanded(
-                    child: GestureDetector(
-                      onHorizontalDragEnd: (details) {
-                        if (details.primaryVelocity! > 0) {
-                          Get.back();
-                        }
-                      },
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage("asset/audi.jpeg"),
-                            fit: BoxFit.cover,
-                            filterQuality: FilterQuality.high,
-                          ),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage("asset/audi.jpeg"),
+                          fit: BoxFit.cover,
+                          filterQuality: FilterQuality.high,
                         ),
-                        child: ListView(
-                          reverse: false,
-                          controller: scrollController,
-                          children: fetchData
-                              .map(
-                                (e) => Row(
-                              mainAxisAlignment: (e.receiver ==
-                                  AuthController.currentUser!.email)
-                                  ? MainAxisAlignment.start
-                                  : MainAxisAlignment.end,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      right: 10, left: 10, bottom: 5, top: 5),
-                                  child: Chip(
-                                    side: const BorderSide(
-                                      width: 1,
-                                      color: Colors.white,
-                                    ),
-                                    elevation: 15,
-                                    label: Column(
-                                      crossAxisAlignment: (e.sender ==
-                                          AuthController.currentUser!.email)
-                                          ? CrossAxisAlignment.start
-                                          : CrossAxisAlignment.end,
-                                      children: [
-                                        RichText(
-                                          text: TextSpan(
-                                            children: [
-                                              TextSpan(
-                                                text: e.message,
+                      ),
+                      child: ListView(
+                        controller: scrollController,
+                        children: fetchData
+                            .map(
+                              (e) => Row(
+                            mainAxisAlignment: (e.receiver ==
+                                AuthController.currentUser!.email)
+                                ? MainAxisAlignment.start
+                                : MainAxisAlignment.end,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    right: 10,
+                                    left: 10,
+                                    bottom: 5,
+                                    top: 5),
+                                child: Chip(
+                                  side: const BorderSide(
+                                    width: 1,
+                                    color: Colors.white,
+                                  ),
+                                  elevation: 15,
+                                  label: Column(
+                                    crossAxisAlignment: (e.sender ==
+                                        AuthController
+                                            .currentUser!.email)
+                                        ? CrossAxisAlignment.start
+                                        : CrossAxisAlignment.end,
+                                    children: [
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: e.message,
+                                              style: const TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 16),
+                                            ),
+                                            TextSpan(
+                                                text:
+                                                e.time.split("-")[1],
                                                 style: const TextStyle(
-                                                    color: Colors.black, fontSize: 16),
-                                              ),
-                                              TextSpan(
-                                                  text: e.time.split("-")[1],
-                                                  style: const TextStyle(
-                                                      color: Colors.black54)),
-                                            ],
-                                          ),
+                                                    color:
+                                                    Colors.black54)),
+                                          ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
-                          )
-                              .toList(),
-                        ),
+                              ),
+                            ],
+                          ),
+                        )
+                            .toList(),
                       ),
                     ),
                   ),
@@ -185,15 +177,17 @@ class _ChatPageState extends State<ChatPage> {
                                 if (_controller.text.trim().isNotEmpty) {
                                   await FireStoreHelper.fireStoreHelper
                                       .sendMessage(
-                                          AuthController.currentUser!.email!,
-                                          widget.userEmail,
-                                          _controller.text);
-                                }
-                                _controller.clear();
-                                scrollController.animateTo(
+                                      AuthController.currentUser!.email!,
+                                      widget.userEmail,
+                                      _controller.text);
+                                  // Scroll to the bottom after sending message
+                                  scrollController.animateTo(
                                     scrollController.position.maxScrollExtent,
                                     duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeIn);
+                                    curve: Curves.easeInOut,
+                                  );
+                                }
+                                _controller.clear();
                               },
                             ),
                           ),

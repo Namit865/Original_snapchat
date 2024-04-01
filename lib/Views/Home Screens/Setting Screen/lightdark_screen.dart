@@ -23,7 +23,7 @@ class ThemePage extends StatelessWidget {
             ),
             ListTile(
               onTap: () {
-                _homePageController.toggleLightTheme();
+                // _homePageController.toggleLightTheme();
               },
               trailing: _homePageController.isDark.value
                   ? null
@@ -40,7 +40,7 @@ class ThemePage extends StatelessWidget {
             ),
             ListTile(
               onTap: () async {
-                await _homePageController.toggleDarkTheme();
+                // await _homePageController.toggleDarkTheme();
               },
               trailing: _homePageController.isDark.value
                   ? const Icon(Icons.check)

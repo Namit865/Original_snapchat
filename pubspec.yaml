@@ -47,7 +47,6 @@ dependencies:
   shared_preferences:
   intl:
   lottie:
-  get_storage:
 
 dev_dependencies:
   flutter_test:
