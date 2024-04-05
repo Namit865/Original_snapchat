@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -28,18 +29,22 @@ class _ChatPageState extends State<ChatPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xffFFF375),
-        title: Row(
+        title: Column(
           children: [
-            const CircleAvatar(
-              radius: 22,
-            ),
-            const SizedBox(
-              width: 20,
-            ),
-            Text(
-              widget.userName,
-              style:
-              const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                const CircleAvatar(
+                  radius: 22,
+                ),
+                const SizedBox(
+                  width: 20,
+                ),
+                Text(
+                  widget.userName,
+                  style: const TextStyle(
+                      fontSize: 21, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
           ],
         ),
@@ -54,14 +59,14 @@ class _ChatPageState extends State<ChatPage> {
               );
             } else {
               fetchData = snapshot.data!.docs.map(
-                    (e) {
+                (e) {
                   DateTime dateTime = (e['time'] as Timestamp).toDate();
                   String formattedDateTime =
-                  DateFormat('MMM dd, yyyy - hh:mm a').format(dateTime);
+                      DateFormat('MMM dd, yyyy - hh:mm a').format(dateTime);
                   return getMessageData(
                     sender: e['sender'] ?? '',
                     message:
-                    e.data().containsKey('message') ? e['message'] : '',
+                        e.data().containsKey('message') ? e['message'] : '',
                     receiver: e['receiver'] ?? '',
                     time: formattedDateTime,
                   );
@@ -84,55 +89,50 @@ class _ChatPageState extends State<ChatPage> {
                         children: fetchData
                             .map(
                               (e) => Row(
-                            mainAxisAlignment: (e.receiver ==
-                                AuthController.currentUser!.email)
-                                ? MainAxisAlignment.start
-                                : MainAxisAlignment.end,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    right: 10,
-                                    left: 10,
-                                    bottom: 5,
-                                    top: 5),
-                                child: Chip(
-                                  side: const BorderSide(
-                                    width: 1,
-                                    color: Colors.white,
-                                  ),
-                                  elevation: 15,
-                                  label: Column(
-                                    crossAxisAlignment: (e.sender ==
-                                        AuthController
-                                            .currentUser!.email)
-                                        ? CrossAxisAlignment.start
-                                        : CrossAxisAlignment.end,
-                                    children: [
-                                      RichText(
-                                        text: TextSpan(
-                                          children: [
-                                            TextSpan(
-                                              text: e.message,
-                                              style: const TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 16),
-                                            ),
-                                            TextSpan(
-                                                text:
-                                                e.time.split("-")[1],
-                                                style: const TextStyle(
-                                                    color:
-                                                    Colors.black54)),
-                                          ],
-                                        ),
+                                mainAxisAlignment: (e.receiver ==
+                                        AuthController.currentUser!.email)
+                                    ? MainAxisAlignment.start
+                                    : MainAxisAlignment.end,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        right: 10, left: 10, bottom: 5, top: 5),
+                                    child: Chip(
+                                      side: const BorderSide(
+                                        width: 1,
+                                        color: Colors.white,
                                       ),
-                                    ],
+                                      elevation: 15,
+                                      label: Column(
+                                        crossAxisAlignment: (e.sender ==
+                                                AuthController
+                                                    .currentUser!.email)
+                                            ? CrossAxisAlignment.start
+                                            : CrossAxisAlignment.end,
+                                        children: [
+                                          RichText(
+                                            text: TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text: e.message,
+                                                  style: const TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 16),
+                                                ),
+                                                TextSpan(
+                                                    text: e.time.split("-")[1],
+                                                    style: const TextStyle(
+                                                        color: Colors.black54)),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ],
-                          ),
-                        )
+                            )
                             .toList(),
                       ),
                     ),
@@ -144,19 +144,28 @@ class _ChatPageState extends State<ChatPage> {
                       children: [
                         Expanded(
                           flex: 6,
-                          child: TextFormField(
-                            scribbleEnabled: true,
-                            cursorColor: Colors.yellow,
-                            controller: _controller,
-                            keyboardType: TextInputType.text,
-                            decoration: InputDecoration(
-                              isDense: true,
-                              hintText: "Send Message",
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(35),
+                          child: Stack(
+                              children: [
+                            TextFormField(
+                              scribbleEnabled: true,
+                              cursorColor: Colors.yellow,
+                              controller: _controller,
+                              keyboardType: TextInputType.text,
+                              decoration: InputDecoration(
+                                suffixIcon: InkWell(
+                                    onTap: () {},
+                                    child: const Icon(
+                                      CupertinoIcons.paperclip,
+                                      size: 20,
+                                    )),
+                                isDense: true,
+                                hintText: "Send Message",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(35),
+                                ),
                               ),
                             ),
-                          ),
+                          ]),
                         ),
                         const SizedBox(
                           width: 10,
@@ -177,13 +186,13 @@ class _ChatPageState extends State<ChatPage> {
                                 if (_controller.text.trim().isNotEmpty) {
                                   await FireStoreHelper.fireStoreHelper
                                       .sendMessage(
-                                      AuthController.currentUser!.email!,
-                                      widget.userEmail,
-                                      _controller.text);
-                                  // Scroll to the bottom after sending message
+                                          AuthController.currentUser!.email!,
+                                          widget.userEmail,
+                                          _controller.text);
+
                                   scrollController.animateTo(
                                     scrollController.position.maxScrollExtent,
-                                    duration: const Duration(milliseconds: 300),
+                                    duration: const Duration(milliseconds: 10),
                                     curve: Curves.easeInOut,
                                   );
                                 }

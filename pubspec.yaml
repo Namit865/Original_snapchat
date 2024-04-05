@@ -47,6 +47,9 @@ dependencies:
   shared_preferences:
   intl:
   lottie:
+  async:
+  image_picker:
+  rxdart:
 
 dev_dependencies:
   flutter_test:

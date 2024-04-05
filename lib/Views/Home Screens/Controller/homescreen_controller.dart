@@ -7,7 +7,6 @@ class HomePageController extends GetxController {
   late RxInt currentIndex = 0.obs;
   RxList<userData> fetchedAllUserData = <userData>[].obs;
   RxBool isDark = false.obs;
-  RxList<Map<String, String>> lastMessages = <Map<String, String>>[].obs;
 
   void changeIndex(int index) {
     currentIndex.value = index;
@@ -16,9 +15,8 @@ class HomePageController extends GetxController {
   @override
   void onInit() async {
     super.onInit();
-
     List<QueryDocumentSnapshot<Object?>> data =
-        await FireStoreHelper.fireStoreHelper.fetchAllUserData();
+        (await FireStoreHelper.fireStoreHelper.fetchAllUserData());
 
     for (var element in data) {
       fetchedAllUserData.add(
@@ -29,8 +27,5 @@ class HomePageController extends GetxController {
         ),
       );
     }
-
-    lastMessages.value = (await FireStoreHelper.fireStoreHelper
-        .getAllLastMessages(data)) as List<Map<String, String>>;
   }
 }

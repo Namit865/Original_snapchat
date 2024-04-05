@@ -2,6 +2,7 @@ import 'package:chat_app/Controller/authcontroller.dart';
 import 'package:chat_app/Models/fetchChatRoomUsers.dart';
 import 'package:chat_app/Models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rxdart/rxdart.dart'; // This is required for the flatMap function
 
 class FireStoreHelper {
   FireStoreHelper._();
@@ -15,18 +16,6 @@ class FireStoreHelper {
       'name': user.name,
       'email': user.email,
       'password': user.password,
-    });
-  }
-
-  Stream<List<Map<String, dynamic>>> getAllMessageData() {
-    return firebaseFireStore.collection("chats").snapshots().map((event) {
-      List<Map<String, String>> messages = [];
-      event.docs.forEach((e) {
-        String chatId = e.id;
-        String lastMessage = e['lastMessage'] ?? '';
-        messages.add({'chatId': chatId, 'lastMessage': lastMessage});
-      });
-      return messages;
     });
   }
 
@@ -93,32 +82,34 @@ class FireStoreHelper {
       'read': false,
     });
   }
+  Stream<String> getLastMessage(String userEmail) {
+    String chatRoomId = "${AuthController.currentUser!.email!}_$userEmail";
+    String reverseChatRoomId = "${userEmail}_${AuthController.currentUser!.email!}";
 
-  getAllLastMessages(data) async {
-    List<Map<String, String>> lastMessages = [];
-
-    QuerySnapshot snapshot = await firebaseFireStore.collection('chats').get();
-
-    for (var doc in snapshot.docs) {
-      String chatRoomId = doc['chat_id'];
-      QuerySnapshot messageSnapshot = await firebaseFireStore
-          .collection('chats')
-          .doc(chatRoomId)
-          .collection('messages')
-          .orderBy('time', descending: true)
-          .limit(1)
-          .get();
-
-      if (messageSnapshot.docs.isNotEmpty) {
-        String lastMessage = messageSnapshot.docs.first.get('message');
-        Map<String, String> messageData = {
-          'chatId': chatRoomId,
-          'lastMessage': lastMessage,
-        };
-        lastMessages.add(messageData);
+    return firebaseFireStore
+        .collection('chats')
+        .where('chat_id', whereIn: [chatRoomId, reverseChatRoomId])
+        .snapshots()
+        .flatMap((chatRoomSnapshot) {
+      if (chatRoomSnapshot.docs.isNotEmpty) {
+        String chatRoomDocId = chatRoomSnapshot.docs.first.id;
+        return firebaseFireStore
+            .collection('chats')
+            .doc(chatRoomDocId)
+            .collection('messages')
+            .orderBy('time', descending: true)
+            .limit(1)
+            .snapshots()
+            .map((messagesSnapshot) {
+          if (messagesSnapshot.docs.isNotEmpty) {
+            return messagesSnapshot.docs.first.get('message');
+          } else {
+            return 'No New Messages';
+          }
+        });
+      } else {
+        return Stream.value('No messages yet');
       }
-    }
-
-    return lastMessages;
+    });
   }
 }
