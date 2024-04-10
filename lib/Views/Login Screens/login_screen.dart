@@ -1,6 +1,7 @@
 // ignore_for_file: use_full_hex_values_for_flutter_colors
 import 'package:awesome_icons/awesome_icons.dart';
 import 'package:chat_app/Helper/auth_helper.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:get/get.dart';
@@ -29,7 +30,7 @@ class LoginScreen extends StatelessWidget {
               backgroundColor: Color(0xffF5ED00),
             ),
             cardTheme: const CardTheme(
-              color: Colors.white,
+              elevation: 10,
             ),
           ),
           logo: "asset/snapchat.png",
@@ -51,7 +52,7 @@ class LoginScreen extends StatelessWidget {
               icon: FontAwesomeIcons.google,
             ),
             LoginProvider(
-
+              animated: true,
               label: "Phone Number",
               icon: FontAwesomeIcons.phone,
               button: Buttons.anonymous,

@@ -2,7 +2,7 @@ import 'package:chat_app/Controller/authcontroller.dart';
 import 'package:chat_app/Models/fetchChatRoomUsers.dart';
 import 'package:chat_app/Models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:rxdart/rxdart.dart'; // This is required for the flatMap function
+import 'package:rxdart/rxdart.dart';
 
 class FireStoreHelper {
   FireStoreHelper._();
@@ -79,37 +79,50 @@ class FireStoreHelper {
       'receiver': receiver,
       'message': message,
       'time': DateTime.now(),
-      'read': false,
+      'isRead': false,
     });
   }
+
   Stream<String> getLastMessage(String userEmail) {
     String chatRoomId = "${AuthController.currentUser!.email!}_$userEmail";
-    String reverseChatRoomId = "${userEmail}_${AuthController.currentUser!.email!}";
+    String reverseChatRoomId =
+        "${userEmail}_${AuthController.currentUser!.email!}";
 
     return firebaseFireStore
         .collection('chats')
         .where('chat_id', whereIn: [chatRoomId, reverseChatRoomId])
         .snapshots()
-        .flatMap((chatRoomSnapshot) {
-      if (chatRoomSnapshot.docs.isNotEmpty) {
-        String chatRoomDocId = chatRoomSnapshot.docs.first.id;
-        return firebaseFireStore
-            .collection('chats')
-            .doc(chatRoomDocId)
-            .collection('messages')
-            .orderBy('time', descending: true)
-            .limit(1)
-            .snapshots()
-            .map((messagesSnapshot) {
-          if (messagesSnapshot.docs.isNotEmpty) {
-            return messagesSnapshot.docs.first.get('message');
-          } else {
-            return 'No New Messages';
-          }
-        });
-      } else {
-        return Stream.value('No messages yet');
-      }
-    });
+        .flatMap(
+          (chatRoomSnapshot) {
+            if (chatRoomSnapshot.docs.isNotEmpty) {
+              String chatRoomDocId = chatRoomSnapshot.docs.first.id;
+              return firebaseFireStore
+                  .collection('chats')
+                  .doc(chatRoomDocId)
+                  .collection('messages')
+                  .orderBy('time', descending: true)
+                  .limit(1)
+                  .snapshots()
+                  .map((messagesSnapshot) {
+                if (messagesSnapshot.docs.isNotEmpty) {
+                  return messagesSnapshot.docs.first.get('message');
+                } else {
+                  return 'No New Messages';
+                }
+              });
+            } else {
+              return Stream.value('No messages yet');
+            }
+          },
+        );
+  }
+
+  Future<void> markMessageasRead(String messageId) async {
+    await firebaseFireStore
+        .collection('chats')
+        .doc(AuthController.currentChatRoomOfUser)
+        .collection('messages')
+        .doc(messageId)
+        .update({'isRead': true});
   }
 }

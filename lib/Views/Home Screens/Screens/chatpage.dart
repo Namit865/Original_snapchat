@@ -1,5 +1,7 @@
+import 'package:chat_app/Views/Home%20Screens/Controller/homescreen_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:chat_app/Models/chatpage_variables.dart';
@@ -22,6 +24,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   ScrollController scrollController = ScrollController();
+  HomePageController controller = Get.find<HomePageController>();
   final TextEditingController _controller = TextEditingController();
 
   @override
@@ -115,14 +118,20 @@ class _ChatPageState extends State<ChatPage> {
                                               children: [
                                                 TextSpan(
                                                   text: e.message,
-                                                  style: const TextStyle(
-                                                      color: Colors.black,
+                                                  style: TextStyle(
+                                                      color: controller
+                                                              .isDark.value
+                                                          ? Colors.black
+                                                          : Colors.white,
                                                       fontSize: 16),
                                                 ),
                                                 TextSpan(
                                                     text: e.time.split("-")[1],
-                                                    style: const TextStyle(
-                                                        color: Colors.black54)),
+                                                    style: TextStyle(
+                                                        color: controller
+                                                                .isDark.value
+                                                            ? Colors.black
+                                                            : Colors.white54)),
                                               ],
                                             ),
                                           ),
@@ -144,8 +153,7 @@ class _ChatPageState extends State<ChatPage> {
                       children: [
                         Expanded(
                           flex: 6,
-                          child: Stack(
-                              children: [
+                          child: Stack(children: [
                             TextFormField(
                               scribbleEnabled: true,
                               cursorColor: Colors.yellow,

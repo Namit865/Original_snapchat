@@ -1,13 +1,14 @@
 import 'package:chat_app/Controller/authcontroller.dart';
 import 'package:chat_app/Helper/firebase_helper.dart';
+import 'package:chat_app/Views/Home%20Screens/Screens/refresh_animation.dart';
 import 'package:chat_app/Views/Home%20Screens/Screens/stories_page.dart';
+import 'package:chat_app/Views/Home%20Screens/Setting%20Screen/setting_screen.dart';
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
-
 import '../Controller/homescreen_controller.dart';
-import '../Setting Screen/setting_screen.dart';
 import 'camera_screen.dart';
 import 'chatpage.dart';
 
@@ -26,13 +27,17 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        toolbarHeight: 70,
+        backgroundColor: const Color(0xffFFF375),
         title: Row(
           children: [
             const SizedBox(
               width: 5,
             ),
             CircleAvatar(
+              backgroundColor: Colors.white,
               backgroundImage: (AuthController.currentUser?.photoURL != null)
                   ? NetworkImage(AuthController.currentUser!.photoURL!)
                   : null,
@@ -40,63 +45,61 @@ class _HomeScreenState extends State<HomeScreen> {
               child: AuthController.currentUser?.photoURL == null
                   ? const Icon(
                       Icons.person,
+                      color: Colors.black,
                     )
                   : null,
             ),
             const SizedBox(
               width: 10,
             ),
-            Text(
-              "Welcome, ${AuthController.currentUser!.email!.split("@")[0].capitalizeFirst}",
-              style: const TextStyle(
+            const Text(
+              "SnapChat",
+              style: TextStyle(
                 fontSize: 22,
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
               ),
             ),
+            const Spacer(),
+            IconButton(
+              onPressed: () {
+                Get.to(
+                  () => const settingPage(),
+                );
+              },
+              icon: const Icon(
+                CupertinoIcons.settings,
+                color: Colors.black,
+                size: 25,
+              ),
+            )
           ],
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Get.to(
-                () => const settingPage(),
-              );
-            },
-            icon: const Icon(CupertinoIcons.settings),
-          ),
-          const SizedBox(
-            width: 10,
-          ),
-        ],
       ),
       body: Obx(
         () {
           switch (controller.currentIndex.value) {
             case 0:
               return Center(
-                child: ListView.builder(
-                  itemCount: controller.fetchedAllUserData.length,
-                  itemBuilder: (context, index) {
-                    final user = controller.fetchedAllUserData[index];
-                    return Card(
-                      elevation: 3,
-                      child: GestureDetector(
-                        onHorizontalDragUpdate: (details) async {
-                          if (details.delta.dx < 0) {
-                            await FireStoreHelper.fireStoreHelper
-                                .createChatRoomId(
-                                    AuthController.currentUser!.email!,
-                                    user.email);
-                            Get.to(
-                              transition: Transition.cupertino,
-                              ChatPage(
-                                userName: user.name,
-                                userEmail: user.email,
-                              ),
-                            );
-                          }
-                        },
+                child: CustomRefreshIndicator(
+                  onRefresh: () =>
+                      FireStoreHelper.fireStoreHelper.fetchAllUserData(),
+                  builder: (BuildContext context, Widget child,
+                      IndicatorController controller) {
+                    return PlaneIndicator(
+                      child: child,
+                    );
+                  },
+                  child: ListView.builder(
+                    itemCount: controller.fetchedAllUserData.length,
+                    itemBuilder: (context, index) {
+                      final user = controller.fetchedAllUserData[index];
+                      return Card(
+                        elevation: 5,
+                        margin:
+                            const EdgeInsets.only(left: 0, right: 0, bottom: 2),
+                        color: Colors.white,
+                        shadowColor: Colors.white,
                         child: ListTile(
                           onTap: () async {
                             await FireStoreHelper.fireStoreHelper
@@ -104,6 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     AuthController.currentUser!.email!,
                                     user.email);
                             Get.to(
+                              transition: Transition.cupertino,
                               () => ChatPage(
                                 userName: user.name,
                                 userEmail: user.email,
@@ -112,25 +116,32 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                           title: Text(
                             user.name,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 18),
+                            style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 18,
+                                color: Colors.black),
                           ),
                           subtitle: StreamBuilder<String>(
-                              stream: FireStoreHelper.fireStoreHelper
-                                  .getLastMessage(user.email),
-                              builder: (context, snapshot) {
-                                 if(snapshot.hasData){
-                                  return Text(snapshot.data!);
-                                 }else{
-                                   return const Text('')
-;                                 }
-                              },),
-                          trailing: const Icon(
-                              Icons.chat_bubble_outline_outlined,
-                              color: Colors.black54),
+                            stream: FireStoreHelper.fireStoreHelper
+                                .getLastMessage(user.email),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                return Text(
+                                  snapshot.data!,
+                                  style: TextStyle(color: Colors.black54),
+                                );
+                              } else {
+                                return const Text('');
+                              }
+                            },
+                          ),
+                          trailing: const Icon(Icons.message),
                           leading: InkWell(
-                            onLongPress: () {
+                            onTap: () {
                               showModalBottomSheet(
+                                backgroundColor: controller.isDark.value
+                                    ? Colors.white
+                                    : Colors.black,
                                 isDismissible: true,
                                 showDragHandle: true,
                                 elevation: 10,
@@ -141,29 +152,40 @@ class _HomeScreenState extends State<HomeScreen> {
                                 context: context,
                                 builder: (context) {
                                   return profileDialogue(
-                                      name: user.name, email: user.email);
+                                    name: user.name,
+                                    email: user.email,
+                                  );
                                 },
                               );
                             },
-                            child: CircleAvatar(
-                              backgroundImage:
-                                  (AuthController.currentUser?.photoURL != null)
-                                      ? NetworkImage(
-                                          AuthController.currentUser!.photoURL!)
-                                      : null,
-                              radius: 25,
-                              child:
-                                  AuthController.currentUser?.photoURL == null
-                                      ? const Icon(
-                                          Icons.person,
-                                        )
-                                      : null,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  backgroundBlendMode: BlendMode.darken,
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: Colors.black),
+                              child: CircleAvatar(
+                                backgroundColor: Colors.white,
+                                backgroundImage: (AuthController
+                                            .currentUser?.photoURL !=
+                                        null)
+                                    ? NetworkImage(
+                                        AuthController.currentUser!.photoURL!)
+                                    : null,
+                                radius: 25,
+                                child:
+                                    AuthController.currentUser?.photoURL == null
+                                        ? const Icon(
+                                            Icons.person,
+                                            color: Colors.black,
+                                          )
+                                        : null,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               );
             case 1:
@@ -223,12 +245,17 @@ class _HomeScreenState extends State<HomeScreen> {
             height: 20,
           ),
           CircleAvatar(
+            backgroundColor: Colors.white,
             radius: 60,
             backgroundImage: AuthController.currentUser?.photoURL != null
                 ? NetworkImage(AuthController.currentUser!.photoURL!)
                 : null,
             child: AuthController.currentUser?.photoURL == null
-                ? const Icon(Icons.person)
+                ? const Icon(
+                    Icons.person,
+                    color: Colors.black,
+                    size: 60,
+                  )
                 : null,
           ),
           const SizedBox(height: 20),
