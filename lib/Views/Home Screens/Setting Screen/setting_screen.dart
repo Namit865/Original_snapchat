@@ -20,6 +20,17 @@ class _settingPageState extends State<settingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("asset/appbar.gif"),
+              fit: BoxFit.cover,
+              repeat: ImageRepeat.repeat,
+              filterQuality: FilterQuality.high,
+              isAntiAlias: true,
+            ),
+          ),
+        ),
         backgroundColor: Color(0xffFFF375),
         title: Text(
           'Settings',

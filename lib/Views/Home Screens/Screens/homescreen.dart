@@ -1,8 +1,8 @@
 import 'package:chat_app/Controller/authcontroller.dart';
 import 'package:chat_app/Helper/firebase_helper.dart';
-import 'package:chat_app/Views/Home%20Screens/Screens/refresh_animation.dart';
-import 'package:chat_app/Views/Home%20Screens/Screens/stories_page.dart';
-import 'package:chat_app/Views/Home%20Screens/Setting%20Screen/setting_screen.dart';
+import 'package:chat_app/Views/Home Screens/Screens/refresh_animation.dart';
+import 'package:chat_app/Views/Home Screens/Screens/stories_page.dart';
+import 'package:chat_app/Views/Home Screens/Setting Screen/setting_screen.dart';
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -27,10 +27,21 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0x000fffff),
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage(
+                "asset/appbar.gif",
+              ),
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.high,
+              repeat: ImageRepeat.repeat,
+            ),
+          ),
+        ),
         toolbarHeight: 70,
-        backgroundColor: const Color(0xffFFF375),
         title: Row(
           children: [
             const SizedBox(
@@ -56,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
               "SnapChat",
               style: TextStyle(
                 fontSize: 22,
-                color: Colors.black,
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -64,6 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
             IconButton(
               onPressed: () {
                 Get.to(
+                  transition: Transition.cupertino,
                   () => const settingPage(),
                 );
               },
@@ -94,13 +106,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemCount: controller.fetchedAllUserData.length,
                     itemBuilder: (context, index) {
                       final user = controller.fetchedAllUserData[index];
-                      return Card(
-                        elevation: 5,
-                        margin:
-                            const EdgeInsets.only(left: 0, right: 0, bottom: 2),
-                        color: Colors.white,
-                        shadowColor: Colors.white,
-                        child: ListTile(
+                      return Padding(
+                        padding: const EdgeInsets.all(1.0),
+                        child: GestureDetector(
                           onTap: () async {
                             await FireStoreHelper.fireStoreHelper
                                 .createChatRoomId(
@@ -114,72 +122,76 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             );
                           },
-                          title: Text(
-                            user.name,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 18,
-                                color: Colors.black),
-                          ),
-                          subtitle: StreamBuilder<String>(
-                            stream: FireStoreHelper.fireStoreHelper
-                                .getLastMessage(user.email),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return Text(
-                                  snapshot.data!,
-                                  style: TextStyle(color: Colors.black54),
-                                );
-                              } else {
-                                return const Text('');
-                              }
-                            },
-                          ),
-                          trailing: const Icon(Icons.message),
-                          leading: InkWell(
-                            onTap: () {
-                              showModalBottomSheet(
-                                backgroundColor: controller.isDark.value
-                                    ? Colors.white
-                                    : Colors.black,
-                                isDismissible: true,
-                                showDragHandle: true,
-                                elevation: 10,
-                                useSafeArea: true,
-                                barrierLabel: user.name,
-                                enableDrag: true,
-                                isScrollControlled: true,
-                                context: context,
-                                builder: (context) {
-                                  return profileDialogue(
-                                    name: user.name,
-                                    email: user.email,
-                                  );
-                                },
-                              );
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                  backgroundBlendMode: BlendMode.darken,
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: Colors.black),
-                              child: CircleAvatar(
-                                backgroundColor: Colors.white,
-                                backgroundImage: (AuthController
-                                            .currentUser?.photoURL !=
-                                        null)
-                                    ? NetworkImage(
-                                        AuthController.currentUser!.photoURL!)
-                                    : null,
-                                radius: 25,
-                                child:
-                                    AuthController.currentUser?.photoURL == null
-                                        ? const Icon(
-                                            Icons.person,
-                                            color: Colors.black,
-                                          )
-                                        : null,
-                              ),
+                          child: Container(
+                            clipBehavior: Clip.antiAlias,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15)),
+                            height: 80,
+                            child: Stack(
+                              children: [
+                                Image.asset(
+                                  "asset/appbar.gif",
+                                  repeat: ImageRepeat.repeat,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  filterQuality: FilterQuality.high,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(
+                                      width: 15,
+                                    ),
+                                    const CircleAvatar(
+                                      backgroundColor: Colors.white,
+                                      radius: 30,
+                                      child: Icon(
+                                        Icons.person,
+                                        size: 30,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 20,
+                                    ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          user.name,
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              color: controller.isDark.value
+                                                  ? Colors.black
+                                                  : Colors.white),
+                                        ),
+                                        const SizedBox(
+                                          height: 10,
+                                        ),
+                                        StreamBuilder<String>(
+                                          stream: FireStoreHelper
+                                              .fireStoreHelper
+                                              .getLastMessage(user.email),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.hasData) {
+                                              return Text(
+                                                textAlign: TextAlign.left,
+                                                snapshot.data!,
+                                                style: const TextStyle(
+                                                    color: Colors.white),
+                                              );
+                                            } else {
+                                              return const Text('');
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -189,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               );
             case 1:
-              return const Camera();
+              return const cameraScreen();
             default:
               return const Stories();
           }
@@ -200,7 +212,6 @@ class _HomeScreenState extends State<HomeScreen> {
           curve: Curves.easeInCirc,
           margin: const EdgeInsets.all(15),
           unselectedItemColor: Colors.grey,
-          backgroundColor: Colors.black12,
           currentIndex: controller.currentIndex.value,
           onTap: (index) {
             controller.changeIndex(index);
@@ -209,17 +220,15 @@ class _HomeScreenState extends State<HomeScreen> {
             SalomonBottomBarItem(
               title: const Text("Chat"),
               icon: const Icon(CupertinoIcons.chat_bubble),
-              selectedColor: Colors.black,
             ),
             SalomonBottomBarItem(
               title: const Text("Camera"),
               icon: const Icon(CupertinoIcons.camera),
-              selectedColor: Colors.black,
             ),
             SalomonBottomBarItem(
-                title: const Text("Stories"),
-                icon: const Icon(Icons.auto_stories),
-                selectedColor: Colors.black),
+              title: const Text("Stories"),
+              icon: const Icon(Icons.auto_stories),
+            ),
           ],
         ),
       ),

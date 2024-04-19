@@ -14,6 +14,17 @@ class _ThemePageState extends State<ThemePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("asset/appbar.gif"),
+              fit: BoxFit.cover,
+              repeat: ImageRepeat.repeat,
+              filterQuality: FilterQuality.high,
+              isAntiAlias: true,
+            ),
+          ),
+        ),
         title: Hero(
           tag: 'Appearance',
           placeholderBuilder: (context, heroSize, child) {
@@ -50,43 +61,17 @@ class _ThemePageState extends State<ThemePage> {
                     fontSize: 12),
               ),
             ),
-            ListTile(
-              enabled: !controller.isDark.value,
-              onTap: () async {
-                if (!controller.isDark.value) {
-                  await controller.dayNightTheme(light: false);
-                }
+            Switch(
+              value: controller.isDark.value ? false : true,
+              onChanged: (val) {
+                controller.dayNightTheme(light: true);
               },
-              trailing:
-                  controller.isDark.value ? const Icon(Icons.check) : null,
-              title: const Text(
-                "Always Light",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              thumbIcon: MaterialStatePropertyAll(
+                controller.isDark.value
+                    ? const Icon(Icons.light_mode)
+                    : const Icon(Icons.dark_mode),
               ),
-            ),
-            const Divider(
-              thickness: 1,
-              indent: 15,
-              endIndent: 15,
-            ),
-            ListTile(
-              enabled: controller.isDark.value,
-              onTap: () async {
-                if (controller.isDark.value) {
-                  await controller.dayNightTheme(light: true);
-                }
-              },
-              trailing:
-                  controller.isDark.value ? null : const Icon(Icons.check),
-              title: const Text(
-                "Always Dark",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const Divider(
-              thickness: 1,
-              indent: 15,
-              endIndent: 15,
+              autofocus: true,
             ),
           ],
         ),

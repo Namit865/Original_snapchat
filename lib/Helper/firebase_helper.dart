@@ -1,4 +1,5 @@
 import 'package:chat_app/Controller/authcontroller.dart';
+import 'package:chat_app/Models/chatpage_variables.dart';
 import 'package:chat_app/Models/fetchChatRoomUsers.dart';
 import 'package:chat_app/Models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -79,7 +80,6 @@ class FireStoreHelper {
       'receiver': receiver,
       'message': message,
       'time': DateTime.now(),
-      'isRead': false,
     });
   }
 
@@ -96,6 +96,7 @@ class FireStoreHelper {
           (chatRoomSnapshot) {
             if (chatRoomSnapshot.docs.isNotEmpty) {
               String chatRoomDocId = chatRoomSnapshot.docs.first.id;
+
               return firebaseFireStore
                   .collection('chats')
                   .doc(chatRoomDocId)
@@ -107,22 +108,13 @@ class FireStoreHelper {
                 if (messagesSnapshot.docs.isNotEmpty) {
                   return messagesSnapshot.docs.first.get('message');
                 } else {
-                  return 'No New Messages';
+                  return 'No messages yet';
                 }
               });
             } else {
-              return Stream.value('No messages yet');
+              return Stream.value('');
             }
           },
         );
-  }
-
-  Future<void> markMessageasRead(String messageId) async {
-    await firebaseFireStore
-        .collection('chats')
-        .doc(AuthController.currentChatRoomOfUser)
-        .collection('messages')
-        .doc(messageId)
-        .update({'isRead': true});
   }
 }

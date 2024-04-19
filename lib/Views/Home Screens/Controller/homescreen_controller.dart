@@ -6,12 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HomePageController extends GetxController {
-  late RxInt currentIndex = 0.obs;
+  late RxInt currentIndex = 1.obs;
   RxList<userData> fetchedAllUserData = <userData>[].obs;
   RxBool isDark = false.obs;
 
   void changeIndex(int index) {
-    currentIndex.value = index;
+     currentIndex.value = index;
+    refresh();
+    update();
   }
 
   @override

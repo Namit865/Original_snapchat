@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:chat_app/Helper/auth_helper.dart';
+import 'package:chat_app/Views/Home%20Screens/Screens/camera_screen.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Home Screens/Screens/homescreen.dart';
@@ -24,12 +25,14 @@ class splashController extends GetxController {
       final result = await AuthHelper.authHelper
           .loginUserWithEmailAndPassword(email: email, password: password);
       if (result == null) {
-        Get.offAll(() => const HomeScreen());
+        Get.offAll(
+          () => const HomeScreen(),
+        ); 
       } else {
         Get.offAll(() => const LoginScreen());
       }
     } else {
       Get.offAll(() => const LoginScreen());
-    }
   }
+}
 }

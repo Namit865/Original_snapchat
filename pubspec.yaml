@@ -51,6 +51,9 @@ dependencies:
   image_picker:
   rxdart:
   custom_refresh_indicator:
+  camera:
+  path:
+  path_provider:
 
 dev_dependencies:
   flutter_test:
