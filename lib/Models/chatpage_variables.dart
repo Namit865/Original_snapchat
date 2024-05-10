@@ -7,14 +7,15 @@ class getMessageData {
   String message;
   String receiver;
   String time;
+  bool isRead;
 
-  getMessageData(
-      {
-      required this.sender,
-      required this.message,
-      required this.receiver,
-      required this.time,
-      });
+  getMessageData({
+    required this.sender,
+    required this.message,
+    required this.receiver,
+    required this.time,
+    this.isRead = false,
+  });
 
   factory getMessageData.fromMap(Map<String, dynamic> map) {
     Timestamp timestamp = map['time'];
@@ -27,11 +28,12 @@ class getMessageData {
       receiver: map['receiver'],
       message: map['message'],
       time: formattedTime,
+      isRead: map['isRead'] ?? false,
     );
   }
 
   String getFormattedTime() {
-    DateTime now = DateTime.now();
+    DateTime now = DateTime.now(); 
     DateTime messageDateTime = DateTime.parse(time);
     Duration difference = now.difference(messageDateTime);
 

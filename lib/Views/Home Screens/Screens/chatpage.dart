@@ -52,7 +52,9 @@ class _ChatPageState extends State<ChatPage> {
                 Text(
                   widget.userName,
                   style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.bold,color: Colors.white),
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
                 ),
               ],
             ),
@@ -111,7 +113,7 @@ class _ChatPageState extends State<ChatPage> {
                                 side: const BorderSide(
                                     width: 1, color: Colors.white),
                                 elevation: 15,
-                                label: Column(
+                                label: Row(
                                   crossAxisAlignment: message.sender ==
                                           AuthController.currentUser!.email
                                       ? CrossAxisAlignment.start
@@ -119,20 +121,12 @@ class _ChatPageState extends State<ChatPage> {
                                   children: [
                                     Text(
                                       message.message,
-                                      style: TextStyle(
-                                        color: controller.isDark.value
-                                            ? Colors.black
-                                            : Colors.white,
+                                      style: const TextStyle(
                                         fontSize: 16,
                                       ),
                                     ),
                                     Text(
                                       message.time.split("-")[1],
-                                      style: TextStyle(
-                                        color: controller.isDark.value
-                                            ? Colors.black
-                                            : Colors.white54,
-                                      ),
                                     ),
                                   ],
                                 ),
@@ -152,11 +146,18 @@ class _ChatPageState extends State<ChatPage> {
                       Expanded(
                         flex: 6,
                         child: TextFormField(
-                          scribbleEnabled: true,
+                          onTap: () {
+                            scrollController.animateTo(
+                              scrollController.position.maxScrollExtent,
+                              duration: const Duration(milliseconds: 10),
+                              curve: Curves.easeInOut,
+                            );
+                          },
                           cursorColor: Colors.yellow,
                           controller: _controller,
                           keyboardType: TextInputType.text,
                           decoration: InputDecoration(
+                            filled: true,
                             suffixIcon: InkWell(
                               onTap: () {},
                               child: const Icon(
@@ -168,7 +169,12 @@ class _ChatPageState extends State<ChatPage> {
                             hintText: "Send Message",
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(35),
+                              borderSide: BorderSide.none
                             ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide.none
+                            )
                           ),
                         ),
                       ),
@@ -193,7 +199,6 @@ class _ChatPageState extends State<ChatPage> {
                                   widget.userEmail,
                                   _controller.text,
                                 );
-
                                 scrollController.animateTo(
                                   scrollController.position.maxScrollExtent,
                                   duration: const Duration(milliseconds: 10),

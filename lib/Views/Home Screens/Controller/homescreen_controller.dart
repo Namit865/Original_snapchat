@@ -1,4 +1,3 @@
-import 'package:chat_app/Controller/authcontroller.dart';
 import 'package:chat_app/Helper/firebase_helper.dart';
 import 'package:chat_app/Models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,7 +10,7 @@ class HomePageController extends GetxController {
   RxBool isDark = false.obs;
 
   void changeIndex(int index) {
-     currentIndex.value = index;
+    currentIndex.value = index;
     refresh();
     update();
   }
@@ -19,6 +18,10 @@ class HomePageController extends GetxController {
   @override
   void onInit() async {
     super.onInit();
+    fetchData();
+  }
+
+  fetchData() async {
     List<QueryDocumentSnapshot<Object?>> data =
         (await FireStoreHelper.fireStoreHelper.fetchAllUserData());
 

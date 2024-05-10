@@ -1,5 +1,6 @@
+import 'dart:async';
+import 'package:async/async.dart';
 import 'package:chat_app/Controller/authcontroller.dart';
-import 'package:chat_app/Models/chatpage_variables.dart';
 import 'package:chat_app/Models/fetchChatRoomUsers.dart';
 import 'package:chat_app/Models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -65,6 +66,7 @@ class FireStoreHelper {
         .doc(AuthController.currentChatRoomOfUser)
         .collection('messages')
         .orderBy('time', descending: false)
+        .where('receiver')
         .snapshots();
   }
 
@@ -80,6 +82,7 @@ class FireStoreHelper {
       'receiver': receiver,
       'message': message,
       'time': DateTime.now(),
+      'isRead':false,
     });
   }
 
