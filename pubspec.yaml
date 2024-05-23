@@ -54,6 +54,8 @@ dependencies:
   camera:
   path:
   path_provider:
+  flutter_chat_bubble:
+  particles_flutter:
 
 dev_dependencies:
   flutter_test:

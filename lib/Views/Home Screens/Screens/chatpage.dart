@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
@@ -26,6 +27,17 @@ class _ChatPageState extends State<ChatPage> {
   ScrollController scrollController = ScrollController();
   HomePageController controller = Get.find<HomePageController>();
   final TextEditingController _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    markMessagesRead();
+  }
+
+  void markMessagesRead() async {
+    String chatRoomId = AuthController.currentChatRoomOfUser!;
+    await FireStoreHelper.fireStoreHelper.markMessagesAsRead(chatRoomId);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,11 +86,13 @@ class _ChatPageState extends State<ChatPage> {
                 DateTime dateTime = (e['time'] as Timestamp).toDate();
                 String formattedDateTime =
                     DateFormat('MMM dd, yyyy - hh:mm a').format(dateTime);
+                bool read = e.data().containsKey('read') ? e['read'] : null;
                 return getMessageData(
                   sender: e['sender'] ?? '',
                   message: e.data().containsKey('message') ? e['message'] : '',
                   receiver: e['receiver'] ?? '',
                   time: formattedDateTime,
+                  read: read,
                 );
               },
             ).toList();
@@ -88,13 +102,7 @@ class _ChatPageState extends State<ChatPage> {
               children: [
                 Expanded(
                   child: Container(
-                    decoration: const BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage("asset/audi.jpeg"),
-                        fit: BoxFit.cover,
-                        filterQuality: FilterQuality.high,
-                      ),
-                    ),
+                    color: Colors.white,
                     child: ListView.builder(
                       controller: scrollController,
                       itemCount: fetchData.length,
@@ -109,11 +117,14 @@ class _ChatPageState extends State<ChatPage> {
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 5),
-                              child: Chip(
-                                side: const BorderSide(
-                                    width: 1, color: Colors.white),
-                                elevation: 15,
-                                label: Row(
+                              child: ChatBubble(
+                                backGroundColor: Color(0xffFFFAA0),
+                                clipper: ChatBubbleClipper6(
+                                    type: message.receiver ==
+                                            AuthController.currentUser!.email
+                                        ? BubbleType.receiverBubble
+                                        : BubbleType.sendBubble),
+                                child: Row(
                                   crossAxisAlignment: message.sender ==
                                           AuthController.currentUser!.email
                                       ? CrossAxisAlignment.start
@@ -122,11 +133,12 @@ class _ChatPageState extends State<ChatPage> {
                                     Text(
                                       message.message,
                                       style: const TextStyle(
-                                        fontSize: 16,
-                                      ),
+                                          fontSize: 16, color: Colors.black),
                                     ),
                                     Text(
                                       message.time.split("-")[1],
+                                      style:
+                                          const TextStyle(color: Colors.black),
                                     ),
                                   ],
                                 ),
@@ -157,25 +169,22 @@ class _ChatPageState extends State<ChatPage> {
                           controller: _controller,
                           keyboardType: TextInputType.text,
                           decoration: InputDecoration(
-                            filled: true,
-                            suffixIcon: InkWell(
-                              onTap: () {},
-                              child: const Icon(
-                                CupertinoIcons.paperclip,
-                                size: 20,
+                              filled: true,
+                              suffixIcon: InkWell(
+                                onTap: () {},
+                                child: const Icon(
+                                  CupertinoIcons.paperclip,
+                                  size: 20,
+                                ),
                               ),
-                            ),
-                            isDense: true,
-                            hintText: "Send Message",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(35),
-                              borderSide: BorderSide.none
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              borderSide: BorderSide.none
-                            )
-                          ),
+                              isDense: true,
+                              hintText: "Send Message",
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(35),
+                                  borderSide: BorderSide.none),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide.none)),
                         ),
                       ),
                       const SizedBox(width: 10),
