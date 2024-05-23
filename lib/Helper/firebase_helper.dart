@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:async/async.dart';
 import 'package:chat_app/Controller/authcontroller.dart';
 import 'package:chat_app/Models/fetchChatRoomUsers.dart';
 import 'package:chat_app/Models/user.dart';
@@ -82,7 +81,7 @@ class FireStoreHelper {
       'receiver': receiver,
       'message': message,
       'time': DateTime.now(),
-      'isRead':false,
+      'read': false,
     });
   }
 
@@ -120,4 +119,53 @@ class FireStoreHelper {
           },
         );
   }
+
+  Future<void> markMessagesAsRead(String chatRoomId) async {
+    await FirebaseFirestore.instance
+        .collection('chats')
+        .doc(chatRoomId)
+        .collection('messages')
+        .where('receiver', isEqualTo: AuthController.currentUser!.email)
+        .get()
+        .then((querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        doc.reference.update({'read': true});
+      });
+    });
+  }
+
+
+  Stream<int> getUnreadMessageCount(String userEmail) {
+    String chatRoomId = "${AuthController.currentUser!.email!}_$userEmail";
+    String reverseChatRoomId =
+        "${userEmail}_${AuthController.currentUser!.email!}";
+
+    return firebaseFireStore
+        .collection('chats')
+        .where('chat_id', whereIn: [chatRoomId, reverseChatRoomId])
+        .snapshots()
+        .flatMap((chatRoomSnapshot) {
+      if (chatRoomSnapshot.docs.isNotEmpty) {
+        String chatRoomDocId = chatRoomSnapshot.docs.first.id;
+        return firebaseFireStore
+            .collection('chats')
+            .doc(chatRoomDocId)
+            .collection('messages')
+            .where('receiver', isEqualTo: AuthController.currentUser!.email)
+            .where('read', isEqualTo: false)
+            .snapshots()
+            .map((messageSnapshot) => messageSnapshot.docs.length);
+      } else {
+        return Stream.value(0);
+      }
+    });
+  }
+
+  String getChatRoomId(String user1Email, String user2Email) {
+    // Ensure the chat room ID is consistent by sorting the emails
+    List<String> emails = [user1Email, user2Email];
+    emails.sort();
+    return '${emails[0]}_${emails[1]}';
+  }
+
 }
