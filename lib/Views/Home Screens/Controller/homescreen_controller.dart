@@ -12,7 +12,6 @@ class HomePageController extends GetxController {
 
   void changeIndex(int index) {
     currentIndex.value = index;
-    refresh();
     update();
   }
 
