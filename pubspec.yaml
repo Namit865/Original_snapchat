@@ -43,7 +43,7 @@ dependencies:
   firebase_storage:
   cloud_firestore:
   google_sign_in:
-  salomon_bottom_bar:
+  bottom_bar_matu:
   shared_preferences:
   intl:
   lottie:
@@ -56,6 +56,8 @@ dependencies:
   path_provider:
   flutter_chat_bubble:
   particles_flutter:
+  open_file:
+  permission_handler:
 
 dev_dependencies:
   flutter_test:
