@@ -1,3 +1,4 @@
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
@@ -6,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:chat_app/Models/chatpage_variables.dart';
 import 'package:chat_app/Controller/authcontroller.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../Helper/firebase_helper.dart';
 import '../Controller/homescreen_controller.dart';
 
@@ -27,11 +29,63 @@ class _ChatPageState extends State<ChatPage> {
   ScrollController scrollController = ScrollController();
   HomePageController controller = Get.find<HomePageController>();
   final TextEditingController _controller = TextEditingController();
+  static const appId = '7fa99ea40b90446990f1b30f68bbb4c7';
+  static const channelId = 'Chat Application 2024';
+
+  int? remoteuid;
+  bool localUserJoined = false;
+  late RtcEngine engine;
 
   @override
   void initState() {
     super.initState();
     markMessagesRead();
+    initAgora();
+  }
+
+  Future<void> initAgora() async {
+    await [Permission.microphone, Permission.camera].request();
+
+    engine = createAgoraRtcEngine();
+    await engine.initialize(const RtcEngineContext(
+      appId: appId,
+      channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+    ));
+    engine.registerEventHandler(
+      RtcEngineEventHandler(
+        onJoinChannelSuccess: (connection, elapsed) {
+          debugPrint("local user ${connection.localUid} Joined");
+          setState(() {
+            localUserJoined = true;
+          });
+        },
+        onUserJoined: (connection, remoteUid, elapsed) {
+          debugPrint("remote user $remoteUid Joined");
+          setState(() {
+            remoteuid = remoteUid;
+          });
+        },
+        onUserOffline: (connection, remoteUid, reason) {
+          debugPrint("remote user $remoteUid left Channel");
+          setState(() {
+            remoteuid = null;
+          });
+        },
+        onTokenPrivilegeWillExpire: (connection, token) {
+          debugPrint(
+              '[onTokenpriviledgeWillExpire] Connection : ${connection.toJson()},token : $token');
+        },
+      ),
+    );
+    await engine.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
+    await engine.enableVideo();
+    await engine.startPreview();
+
+    await engine.joinChannel(
+        token: '007eJxTYAhO21TVq3lwkTbTmvueb1JO8s5eNrX9bJr5tzNzwwVkq7gVGMzTEi0tUxNNDJIsDUxMzCwtDdIMk4wN0swskpKSTJLNn6QkpjUEMjIcvjiPkZEBAkF8UQbnjMQSBceCgpzM5MSSzPw8BSMDIxMGBgCuziVZ',
+        channelId: channelId,
+        uid: 0,
+        options: ChannelMediaOptions());
   }
 
   void markMessagesRead() async {
@@ -43,35 +97,44 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xffFFF375),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage("asset/appbar.gif"),
-              fit: BoxFit.cover,
-              repeat: ImageRepeat.repeat,
-              filterQuality: FilterQuality.high,
-              isAntiAlias: true,
-            ),
-          ),
-        ),
-        title: Column(
+        toolbarHeight: 50,
+        backgroundColor: Colors.black,
+        leadingWidth: 200,
+        leading: Row(
           children: [
-            Row(
-              children: [
-                const CircleAvatar(radius: 22),
-                const SizedBox(width: 20),
-                Text(
-                  widget.userName,
-                  style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
-                ),
-              ],
+            IconButton(
+              icon: const Icon(
+                CupertinoIcons.back,
+                size: 28,
+              ),
+              onPressed: () {
+                Get.back();
+              },
+            ),
+            const CircleAvatar(radius: 18),
+            const SizedBox(width: 10),
+            Text(
+              widget.userName,
+              style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            onPressed: () async {},
+            icon: const Icon(Icons.videocam_rounded),
+          ),
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.phone),
+          ),
+          const SizedBox(
+            width: 10,
+          )
+        ],
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: FireStoreHelper.fireStoreHelper.getMessages(),
@@ -118,7 +181,7 @@ class _ChatPageState extends State<ChatPage> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 5),
                               child: ChatBubble(
-                                backGroundColor: Color(0xffFFFAA0),
+                                backGroundColor: const Color(0xffFFFAA0),
                                 clipper: ChatBubbleClipper6(
                                     type: message.receiver ==
                                             AuthController.currentUser!.email
@@ -228,5 +291,21 @@ class _ChatPageState extends State<ChatPage> {
         },
       ),
     );
+  }
+  Widget remoteVideo() {
+    if (remoteuid != null) {
+      return AgoraVideoView(
+        controller: VideoViewController.remote(
+          rtcEngine: engine,
+          canvas: VideoCanvas(uid: remoteuid),
+          connection: const RtcConnection(channelId: "Chat Application 2024"),
+        ),
+      );
+    } else {
+      return const Text(
+        'Please wait for remote user to join',
+        textAlign: TextAlign.center,
+      );
+    }
   }
 }

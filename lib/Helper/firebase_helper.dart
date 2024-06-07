@@ -4,6 +4,7 @@ import 'package:chat_app/Models/fetchChatRoomUsers.dart';
 import 'package:chat_app/Models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:http/http.dart' as http;
 
 class FireStoreHelper {
   FireStoreHelper._();
@@ -162,10 +163,42 @@ class FireStoreHelper {
   }
 
   String getChatRoomId(String user1Email, String user2Email) {
-    // Ensure the chat room ID is consistent by sorting the emails
     List<String> emails = [user1Email, user2Email];
     emails.sort();
     return '${emails[0]}_${emails[1]}';
   }
+
+  Future<void> sendCallNotification(String callerEmail, String receiverEmail, String channelName) async {
+    await FirebaseFirestore.instance.collection('call_notifications').add({
+      'caller': callerEmail,
+      'receiver': receiverEmail,
+      'channelName': channelName,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Stream<Map<String, dynamic>?> getCallNotifications(String email) {
+    return FirebaseFirestore.instance
+        .collection('call_notifications')
+        .where('receiver', isEqualTo: email)
+        .snapshots()
+        .map((snapshot) {
+      if (snapshot.docs.isNotEmpty) {
+        return snapshot.docs.first.data();
+      } else {
+        return null;
+      }
+    });
+  }
+
+  Future<String> genrateAgoraToken() async {
+    final response = await http.get(Uri.parse('https://YOUR_BACKEND_URL/getChatAppToken'));
+    if (response.statusCode == 200) {
+      return response.body;
+    } else {
+      throw Exception('Failed to fetch chat app token');
+    }
+  }
+
 
 }

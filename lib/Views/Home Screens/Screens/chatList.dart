@@ -1,7 +1,8 @@
 import 'package:chat_app/Controller/authcontroller.dart';
 import 'package:chat_app/Helper/firebase_helper.dart';
+import 'package:chat_app/Views/Home%20Screens/Profile%20Screens/profile_screen.dart';
+import 'package:chat_app/Views/Home%20Screens/Screens/addFriends.dart';
 import 'package:chat_app/Views/Home%20Screens/Screens/chatpage.dart';
-import 'package:chat_app/Views/Home%20Screens/Setting%20Screen/setting_screen.dart';
 import 'package:chat_app/dust__particles.dart';
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
@@ -27,43 +28,49 @@ class _ChatListState extends State<ChatList> {
         backgroundColor: Colors.white,
         elevation: 0,
         toolbarHeight: 40,
+        leadingWidth: 150,
         leading: Row(
           children: [
-            const SizedBox(width: 10),
-            Expanded(
-              flex: 5,
-              child: GestureDetector(
-                onTap: () {
-                  Get.to(const settingPage());
-                },
-                child: CircleAvatar(
-                    backgroundColor: Colors.black38,
-                    backgroundImage: (AuthController.currentUser?.photoURL !=
-                            null)
-                        ? NetworkImage(AuthController.currentUser!.photoURL!)
-                        : null,
-                    radius: 25,
-                    child: AuthController.currentUser?.photoURL == null
-                        ? const Icon(Icons.person, color: Colors.black)
-                        : null),
-              ),
+            const SizedBox(width: 15),
+            GestureDetector(
+              onTap: () {
+                Get.to(
+                  transition: Transition.rightToLeftWithFade,
+                  ProfileScreen(),
+                );
+              },
+              child: CircleAvatar(
+                  backgroundColor: Colors.black38,
+                  backgroundImage:
+                      (AuthController.currentUser?.photoURL != null)
+                          ? NetworkImage(AuthController.currentUser!.photoURL!)
+                          : null,
+                  radius: 15,
+                  child: AuthController.currentUser?.photoURL == null
+                      ? const Icon(Icons.person, color: Colors.black)
+                      : null),
             ),
-            const Spacer(),
-            Expanded(
-              child: IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.search_sharp,
-                  color: Colors.black,
-                  size: 28,
-                ),
+            const SizedBox(
+              width: 5,
+            ),
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(
+                Icons.search_sharp,
+                color: Colors.black,
+                size: 28,
               ),
             ),
           ],
         ),
         actions: [
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              Get.to(
+                transition: Transition.downToUp,
+                () => const Addfriends(),
+              );
+            },
             child: Container(
               alignment: Alignment.center,
               decoration: BoxDecoration(
@@ -75,18 +82,22 @@ class _ChatListState extends State<ChatList> {
               child: Image.asset(
                 alignment: Alignment.center,
                 'asset/invite.png',
-                color: Colors.black,
                 fit: BoxFit.cover,
               ),
             ),
           ),
           IconButton(
             icon: const Icon(
-              Icons.more_horiz,
-              size: 25,
+              Icons.more_horiz_outlined,
+              size: 28,
               color: Colors.black,
             ),
-            onPressed: () {},
+            onPressed: () {
+              Get.bottomSheet(
+                const BottomSheetContent(),
+                barrierColor: Colors.black.withOpacity(0.4),
+              );
+            },
           ),
           const SizedBox(width: 10),
         ],
@@ -122,7 +133,7 @@ class _ChatListState extends State<ChatList> {
                         await FireStoreHelper.fireStoreHelper.createChatRoomId(
                             AuthController.currentUser!.email!, user.email);
                         Get.to(
-                          transition: Transition.cupertino,
+                          transition: Transition.rightToLeftWithFade,
                           () => ChatPage(
                             userName: user.name,
                             userEmail: user.email,
@@ -297,6 +308,112 @@ class _ChatListState extends State<ChatList> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class BottomSheetContent extends StatelessWidget {
+  const BottomSheetContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 85, left: 10, right: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            color: Color(0xff1C191F),
+          ),
+          height: 295,
+          width: double.infinity,
+        ),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            const Card(
+              margin: EdgeInsets.only(left: 10, right: 10),
+              child: ListTile(
+                title: Text("New Chat"),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              height: 1,
+              color: Colors.white10,
+            ),
+            const Card(
+              margin: EdgeInsets.only(left: 10, right: 10),
+              child: ListTile(
+                title: Text("New Shortcut"),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              height: 1,
+              color: Colors.white10,
+            ),
+            const Card(
+              margin: EdgeInsets.only(left: 10, right: 10),
+              child: ListTile(
+                title: Text("Manage Chats"),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              height: 1,
+              color: Colors.white10,
+            ),
+            const Card(
+              margin: EdgeInsets.only(left: 10, right: 10),
+              child: ListTile(
+                title: Text("Manage Friendahips"),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              height: 1,
+              color: Colors.white10,
+            ),
+            const Card(
+              margin: EdgeInsets.only(left: 10, right: 10),
+              child: ListTile(
+                title: Text("Customize Best Friend Emojis"),
+              ),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            GestureDetector(
+              onTap: () {
+                Get.back();
+              },
+              child: Container(
+                alignment: Alignment.center,
+                height: 60,
+                width: double.infinity,
+                margin: const EdgeInsets.only(left: 10, right: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  color: const Color(0xff1C191F),
+                ),
+                child: const Text(
+                  "Done",
+                  style: TextStyle(
+                    fontSize: 17,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 10,
+            )
+          ],
+        ),
+      ],
     );
   }
 }

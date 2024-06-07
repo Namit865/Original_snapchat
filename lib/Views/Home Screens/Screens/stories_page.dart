@@ -73,7 +73,7 @@ class _StoriesState extends State<Stories> {
           const SizedBox(width: 10),
           GestureDetector(
             onTap: () {
-              Get.to(const settingPage());
+              Get.to(const SettingPage());
             },
             child: const Icon(
               Icons.more_horiz,

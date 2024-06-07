@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'package:camera/camera.dart';
-import 'package:chat_app/Views/Home%20Screens/Setting%20Screen/setting_screen.dart';
+import 'package:chat_app/Views/Home%20Screens/Profile%20Screens/profile_screen.dart';
+import 'package:chat_app/Views/Home%20Screens/Screens/addFriends.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'dart:math' as math;
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
@@ -48,6 +51,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
     try {
       await _controller?.initialize();
+      await _controller?.lockCaptureOrientation(DeviceOrientation.portraitUp);
       setState(() {
         _isCameraInitialized = true;
         selectedCameraIndex = index;
@@ -62,6 +66,8 @@ class _CameraScreenState extends State<CameraScreen> {
     if (_cameras != null && _cameras!.isNotEmpty) {
       onCameraSwitched(selectedCameraIndex);
     }
+    SystemChrome.setPreferredOrientations(
+        [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   }
 
   @override
@@ -119,7 +125,7 @@ class _CameraScreenState extends State<CameraScreen> {
     if (_controller != null && _controller!.value.isRecordingVideo) {
       try {
         XFile videoFile = await _controller!.stopVideoRecording();
-        print('Recording stopped: ${videoFile.path}'); // Debug statement
+        print('Recording stopped: ${videoFile.path}');
 
         timer?.cancel();
         setState(() {
@@ -129,7 +135,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
         Get.snackbar("Video Taken Successfully", "Saved");
       } catch (e) {
-        print('Error stopping recording: $e'); // Debug statement
+        print('Error stopping recording: $e');
       }
     }
   }
@@ -185,49 +191,52 @@ class _CameraScreenState extends State<CameraScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight:40,
+        toolbarHeight: 40,
+        leadingWidth: 150,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: Row(
           children: [
-            const SizedBox(width: 10),
-            Expanded(
-              flex: 5,
-              child: GestureDetector(
-                onTap: () {
-                  Get.to(
-                    settingPage(),
-                  );
-                },
-                child: CircleAvatar(
-                  backgroundColor: Colors.white54,
-                  backgroundImage:
-                      (AuthController.currentUser?.photoURL != null)
-                          ? NetworkImage(AuthController.currentUser!.photoURL!)
-                          : null,
-                  radius: 25,
-                  child: AuthController.currentUser?.photoURL == null
-                      ? const Icon(Icons.person, color: Colors.black)
-                      : null,
-                ),
+            const SizedBox(width: 15),
+            GestureDetector(
+              onTap: () {
+                Get.to(
+                  transition: Transition.rightToLeftWithFade,
+                  () => ProfileScreen(),
+                );
+              },
+              child: CircleAvatar(
+                backgroundColor: Colors.white54,
+                backgroundImage: (AuthController.currentUser?.photoURL != null)
+                    ? NetworkImage(AuthController.currentUser!.photoURL!)
+                    : null,
+                radius: 15,
+                child: AuthController.currentUser?.photoURL == null
+                    ? const Icon(Icons.person, color: Colors.black)
+                    : null,
               ),
             ),
-            const Spacer(),
-            Expanded(
-              child: IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.search_sharp,
-                  color: Colors.white,
-                  size: 28,
-                ),
+            SizedBox(
+              width: 5,
+            ),
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(
+                Icons.search_sharp,
+                color: Colors.white,
+                size: 28,
               ),
             ),
           ],
         ),
         actions: [
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              Get.to(
+                transition: Transition.downToUp,
+                () => const Addfriends(),
+              );
+            },
             child: Container(
               alignment: Alignment.center,
               decoration: BoxDecoration(
@@ -263,7 +272,12 @@ class _CameraScreenState extends State<CameraScreen> {
                 Stack(
                   alignment: Alignment.bottomCenter,
                   children: [
-                    CameraPreview(_controller!),
+                    Transform(
+                      filterQuality: FilterQuality.high,
+                      alignment: Alignment.center,
+                      transform: Matrix4.rotationY(math.pi * 8),
+                      child: CameraPreview(_controller!),
+                    ),
                     GestureDetector(
                       onLongPressStart: (_) async {
                         await startRecording();

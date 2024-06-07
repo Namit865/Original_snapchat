@@ -41,4 +41,5 @@ class HomePageController extends GetxController {
     Get.changeThemeMode(isDark.value ? ThemeMode.light : ThemeMode.dark);
     update();
   }
+
 }

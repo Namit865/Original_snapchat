@@ -17,12 +17,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final HomePageController controller = Get.put(HomePageController());
-  final PageController pageController = PageController();
+  final PageController pageController = PageController(initialPage: 1);
 
   final List<Widget> Tabs = [
     const ChatList(),
     CameraScreen(),
     const Stories(),
+
   ];
 
   void _onTabSelected(int index) {
