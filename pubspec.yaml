@@ -59,8 +59,9 @@ dependencies:
   open_file:
   ios_search_appbar:
   flutter_webrtc:
-  agora_rtc_engine: ^6.3.0
-  permission_handler:
+  spoiler_widget:
+  star_menu:
+  pie_menu:
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 class getMessageData {
@@ -8,6 +7,7 @@ class getMessageData {
   String receiver;
   String time;
   bool read;
+  bool isSpoiler;
 
   getMessageData({
     required this.sender,
@@ -15,6 +15,7 @@ class getMessageData {
     required this.receiver,
     required this.time,
     required this.read,
+    required this.isSpoiler,
   });
 
   factory getMessageData.fromMap(Map<String, dynamic> map) {
@@ -29,6 +30,7 @@ class getMessageData {
       message: map['message'],
       time: formattedTime,
       read: map['read'],
+      isSpoiler: map['isSpoiler'],
     );
   }
 

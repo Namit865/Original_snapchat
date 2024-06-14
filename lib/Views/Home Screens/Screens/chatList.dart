@@ -7,6 +7,7 @@ import 'package:chat_app/dust__particles.dart';
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:spoiler_widget/spoiler_text_widget.dart';
 import '../Controller/homescreen_controller.dart';
 import 'refresh_animation.dart';
 
@@ -150,91 +151,90 @@ class _ChatListState extends State<ChatList> {
                           if (snapshot.hasData) {
                             int unreadCounts = snapshot.data!;
                             bool hasUnreadMessages = unreadCounts > 0;
-                            return DustParticles(
-                              showParticles: hasUnreadMessages,
-                              child: Theme(
-                                data: ThemeData(
-                                    splashColor: Colors.black45,
-                                    highlightColor:
-                                        Colors.black.withOpacity(0.3)),
-                                child: Container(
-                                  height: 60,
-                                  width: double.infinity,
-                                  clipBehavior: Clip.antiAlias,
-                                  decoration: BoxDecoration(
-                                      color: hasUnreadMessages
-                                          ? Colors.blue[50]
-                                          : Colors.white),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      const SizedBox(width: 15),
-                                      GestureDetector(
-                                        onTap: () {
-                                          showModalBottomSheet(
-                                            showDragHandle: true,
-                                            isDismissible: true,
-                                            context: context,
-                                            builder: (context) {
-                                              return profileDialogue(
-                                                  name: user.name,
-                                                  email: user.email);
-                                            },
-                                          );
-                                        },
-                                        child: const CircleAvatar(
-                                          backgroundColor: Colors.black12,
-                                          foregroundColor: Colors.black38,
-                                          radius: 25,
-                                          child: Icon(Icons.person, size: 30),
+                            return Theme(
+                              data: ThemeData(
+                                  splashColor: Colors.black45,
+                                  highlightColor:
+                                      Colors.black.withOpacity(0.3)),
+                              child: Container(
+                                height: 60,
+                                width: double.infinity,
+                                clipBehavior: Clip.antiAlias,
+                                decoration: BoxDecoration(
+                                    color: hasUnreadMessages
+                                        ? Colors.blue[50]
+                                        : Colors.white),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(width: 15),
+                                    GestureDetector(
+                                      onTap: () {
+                                        showModalBottomSheet(
+                                          showDragHandle: true,
+                                          isDismissible: true,
+                                          context: context,
+                                          builder: (context) {
+                                            return profileDialogue(
+                                                name: user.name,
+                                                email: user.email);
+                                          },
+                                        );
+                                      },
+                                      child: const CircleAvatar(
+                                        backgroundColor: Colors.black12,
+                                        foregroundColor: Colors.black38,
+                                        radius: 25,
+                                        child: Icon(Icons.person, size: 30),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 15),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          user.name,
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              color: hasUnreadMessages
+                                                  ? Colors.black
+                                                  : Colors.black,
+                                              fontWeight: hasUnreadMessages
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w500),
                                         ),
-                                      ),
-                                      const SizedBox(width: 15),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            user.name,
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                color: hasUnreadMessages
-                                                    ? Colors.black
-                                                    : Colors.black,
-                                                fontWeight: hasUnreadMessages
-                                                    ? FontWeight.w700
-                                                    : FontWeight.w500),
-                                          ),
-                                          const SizedBox(height: 5),
-                                          StreamBuilder<String>(
-                                            stream: FireStoreHelper
-                                                .fireStoreHelper
-                                                .getLastMessage(user.email),
-                                            builder: (context, snapshot) {
-                                              if (snapshot.hasData) {
-                                                return Text(
-                                                  textAlign: TextAlign.left,
-                                                  snapshot.data!,
-                                                  style: TextStyle(
-                                                      color: Colors.black,
-                                                      fontWeight:
-                                                          hasUnreadMessages
-                                                              ? FontWeight.bold
-                                                              : FontWeight
-                                                                  .normal),
-                                                );
-                                              } else {
-                                                return const Text('');
-                                              }
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(width: 30),
-                                    ],
-                                  ),
+                                        const SizedBox(height: 5),
+                                        StreamBuilder<String>(
+                                          stream: FireStoreHelper
+                                              .fireStoreHelper
+                                              .getLastMessage(user.email),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.hasData) {
+                                              return SpoilerTextWidget(
+                                                text: snapshot.data!,
+                                                style: const TextStyle(
+                                                  color: Colors.black,
+                                                ),
+                                                particleColor: Colors.black,
+                                                enable: hasUnreadMessages ? true : false,
+                                                maxParticleSize: 1.5,
+                                                fadeRadius: 1,
+                                                particleDensity: .4,
+                                                fadeAnimation: true,
+                                                speedOfParticles: 0.3,
+                                              );
+                                            } else {
+                                              return const Text('');
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(width: 30),
+                                  ],
                                 ),
                               ),
                             );

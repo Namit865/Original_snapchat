@@ -70,8 +70,8 @@ class FireStoreHelper {
         .snapshots();
   }
 
-  Future<void> sendMessage(
-      String sender, String receiver, String message) async {
+  Future<void> sendMessage(String sender, String receiver, String message,
+      {bool isSpoiler = false}) async {
     firebaseFireStore
         .collection('chats')
         .doc(AuthController.currentChatRoomOfUser)
@@ -83,6 +83,7 @@ class FireStoreHelper {
       'message': message,
       'time': DateTime.now(),
       'read': false,
+      'isSpoiler':isSpoiler,
     });
   }
 
@@ -135,7 +136,6 @@ class FireStoreHelper {
     });
   }
 
-
   Stream<int> getUnreadMessageCount(String userEmail) {
     String chatRoomId = "${AuthController.currentUser!.email!}_$userEmail";
     String reverseChatRoomId =
@@ -146,59 +146,19 @@ class FireStoreHelper {
         .where('chat_id', whereIn: [chatRoomId, reverseChatRoomId])
         .snapshots()
         .flatMap((chatRoomSnapshot) {
-      if (chatRoomSnapshot.docs.isNotEmpty) {
-        String chatRoomDocId = chatRoomSnapshot.docs.first.id;
-        return firebaseFireStore
-            .collection('chats')
-            .doc(chatRoomDocId)
-            .collection('messages')
-            .where('receiver', isEqualTo: AuthController.currentUser!.email)
-            .where('read', isEqualTo: false)
-            .snapshots()
-            .map((messageSnapshot) => messageSnapshot.docs.length);
-      } else {
-        return Stream.value(0);
-      }
-    });
+          if (chatRoomSnapshot.docs.isNotEmpty) {
+            String chatRoomDocId = chatRoomSnapshot.docs.first.id;
+            return firebaseFireStore
+                .collection('chats')
+                .doc(chatRoomDocId)
+                .collection('messages')
+                .where('receiver', isEqualTo: AuthController.currentUser!.email)
+                .where('read', isEqualTo: false)
+                .snapshots()
+                .map((messageSnapshot) => messageSnapshot.docs.length);
+          } else {
+            return Stream.value(0);
+          }
+        });
   }
-
-  String getChatRoomId(String user1Email, String user2Email) {
-    List<String> emails = [user1Email, user2Email];
-    emails.sort();
-    return '${emails[0]}_${emails[1]}';
-  }
-
-  Future<void> sendCallNotification(String callerEmail, String receiverEmail, String channelName) async {
-    await FirebaseFirestore.instance.collection('call_notifications').add({
-      'caller': callerEmail,
-      'receiver': receiverEmail,
-      'channelName': channelName,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-  }
-
-  Stream<Map<String, dynamic>?> getCallNotifications(String email) {
-    return FirebaseFirestore.instance
-        .collection('call_notifications')
-        .where('receiver', isEqualTo: email)
-        .snapshots()
-        .map((snapshot) {
-      if (snapshot.docs.isNotEmpty) {
-        return snapshot.docs.first.data();
-      } else {
-        return null;
-      }
-    });
-  }
-
-  Future<String> genrateAgoraToken() async {
-    final response = await http.get(Uri.parse('https://YOUR_BACKEND_URL/getChatAppToken'));
-    if (response.statusCode == 200) {
-      return response.body;
-    } else {
-      throw Exception('Failed to fetch chat app token');
-    }
-  }
-
-
 }
