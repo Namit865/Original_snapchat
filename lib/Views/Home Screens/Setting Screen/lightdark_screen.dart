@@ -66,7 +66,7 @@ class _ThemePageState extends State<ThemePage> {
               onChanged: (val) {
                 controller.dayNightTheme(light: true);
               },
-              thumbIcon: MaterialStatePropertyAll(
+              thumbIcon: WidgetStatePropertyAll(
                 controller.isDark.value
                     ? const Icon(Icons.light_mode)
                     : const Icon(Icons.dark_mode),

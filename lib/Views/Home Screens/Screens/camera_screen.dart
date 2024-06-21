@@ -234,7 +234,7 @@ class _CameraScreenState extends State<CameraScreen> {
             onTap: () {
               Get.to(
                 transition: Transition.downToUp,
-                () => const Addfriends(),
+                () =>  const AddFriends(),
               );
             },
             child: Container(

@@ -62,6 +62,8 @@ dependencies:
   spoiler_widget:
   star_menu:
   pie_menu:
+  animations:
+  circular_reveal_animation:
 
 dev_dependencies:
   flutter_test:

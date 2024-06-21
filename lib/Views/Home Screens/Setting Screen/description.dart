@@ -35,9 +35,9 @@ class _DescriptionState extends State<Description> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
+      body: const SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30),
+          padding: EdgeInsets.only(left: 20, right: 20, bottom: 30),
           child: Column(
             children: [
               SizedBox(
@@ -62,14 +62,14 @@ class _DescriptionState extends State<Description> {
            ''',
                 style: TextStyle(fontSize: 15),
               ),
-              const Text(
+              Text(
                 " Let’s get started with the controls you have over your information:",
                 style: TextStyle(fontSize: 15),
               ),
-              const SizedBox(
+              SizedBox(
                 height: 20,
               ),
-              const Row(
+              Row(
                 children: [
                   Text(
                     "Control Over Your \nInformation",

@@ -1,71 +1,42 @@
-import 'package:awesome_icons/awesome_icons.dart';
-import 'package:chat_app/Helper/firebase_helper.dart';
-import 'package:chat_app/Views/Home%20Screens/Controller/homescreen_controller.dart';
 import 'package:chat_app/Views/Home%20Screens/Screens/refresh_animation.dart';
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
+import 'package:chat_app/Helper/firebase_helper.dart';
+import 'package:lottie/lottie.dart';
+import 'package:awesome_icons/awesome_icons.dart';
+import '../Controller/homescreen_controller.dart';
 
-class Addfriends extends StatefulWidget {
-  const Addfriends({super.key});
+class AddFriends extends StatefulWidget {
+  const AddFriends({super.key});
 
   @override
-  State<Addfriends> createState() => _AddfriendsState();
+  _AddFriendsState createState() => _AddFriendsState();
 }
 
-class _AddfriendsState extends State<Addfriends> {
-  TextEditingController controller = TextEditingController();
-  FocusNode focusNode = FocusNode();
-  HomePageController homePageController = Get.find();
-  ValueNotifier<bool> isEditing = ValueNotifier(false);
+class _AddFriendsState extends State<AddFriends> {
+  HomePageController controller = Get.put(HomePageController());
+  final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  final ValueNotifier<bool> _isEditing = ValueNotifier(false);
 
   @override
   void initState() {
     super.initState();
-    focusNode.addListener(
-      () {
-        isEditing.value = focusNode.hasFocus || controller.text.isNotEmpty;
-      },
-    );
-    controller.addListener(
-      () {
-        isEditing.value = focusNode.hasFocus || controller.text.isNotEmpty;
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    focusNode.dispose();
-    controller.dispose();
-    isEditing.dispose();
-    super.dispose();
+    _focusNode.addListener(() {
+      _isEditing.value = _focusNode.hasFocus || _controller.text.isNotEmpty;
+    });
+    _controller.addListener(() {
+      _isEditing.value = _focusNode.hasFocus || _controller.text.isNotEmpty;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        leadingWidth: 70,
-        leading: GestureDetector(
-          onTap: () {
-            Get.back();
-          },
-          child: const Icon(
-            CupertinoIcons.chevron_down,
-            size: 30,
-          ),
-        ),
-        centerTitle: true,
-        title: const Text(
-          "Add Friends",
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
+        title: const Text('Add Friends'),
         actions: [
           IconButton(
             onPressed: () {
@@ -75,26 +46,27 @@ class _AddfriendsState extends State<Addfriends> {
                 const MoreButtonListFriends(),
               );
             },
-            icon: const Icon(
-              Icons.more_horiz,
-              size: 30,
-              color: Colors.white,
+            icon: GestureDetector(
+              onTap: () {},
+              child: const Icon(
+                Icons.more_horiz,
+                size: 30,
+                color: Colors.white,
+              ),
             ),
           ),
-          const SizedBox(
-            width: 5,
-          ),
+          const SizedBox(width: 5),
         ],
       ),
       body: Column(
         children: [
-          Container(
+          SizedBox(
             width: double.infinity,
-            child: ValueListenableBuilder<bool>(
-              valueListenable: isEditing,
+            child: ValueListenableBuilder(
+              valueListenable: _isEditing,
               builder: (BuildContext context, bool value, Widget? child) =>
                   CupertinoSearchTextField(
-                controller: controller,
+                controller: _controller,
                 suffixInsets: const EdgeInsets.only(right: 10),
                 suffixMode: OverlayVisibilityMode.always,
                 suffixIcon: value
@@ -102,8 +74,8 @@ class _AddfriendsState extends State<Addfriends> {
                     : const Icon(Icons.contacts_outlined),
                 onSuffixTap: () {
                   if (value) {
-                    controller.clear();
-                    focusNode.unfocus();
+                    _controller.clear();
+                    _focusNode.unfocus();
                   }
                 },
                 style: const TextStyle(color: Colors.white),
@@ -122,111 +94,116 @@ class _AddfriendsState extends State<Addfriends> {
               child: Container(
                 color: Colors.black,
                 child: ListView.builder(
-                  itemCount: homePageController.fetchedAllUserData.length,
+                  itemCount: controller.fetchedAllUserData.length,
                   itemBuilder: (context, index) {
-                    var user = homePageController.fetchedAllUserData[index];
+                    var user = controller.fetchedAllUserData[index];
                     return Padding(
-                        padding: const EdgeInsets.only(top: 1, bottom: 1),
-                        child: Container(
-                          height: 60,
-                          width: double.infinity,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const SizedBox(width: 15),
-                              const CircleAvatar(
-                                backgroundColor: Colors.white10,
-                                foregroundColor: Colors.white30,
-                                radius: 25,
-                                child: Icon(Icons.person, size: 30),
-                              ),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      user.name,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
+                      padding: const EdgeInsets.only(top: 1, bottom: 1),
+                      child: SizedBox(
+                        height: 60,
+                        width: double.infinity,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const SizedBox(width: 15),
+                            const CircleAvatar(
+                              backgroundColor: Colors.white10,
+                              foregroundColor: Colors.white30,
+                              radius: 25,
+                              child: Icon(Icons.person, size: 30),
+                            ),
+                            const SizedBox(width: 15),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    user.name,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
                                     ),
-                                    Text(
-                                      user.email,
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                      overflow: TextOverflow.ellipsis,
-                                    )
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    user.email,
+                                    style: const TextStyle(color: Colors.white),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 10,
+                                  right: 20,
+                                  top: 10,
+                                ),
+                                child: Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        FireStoreHelper.fireStoreHelper
+                                            .sendFriendRequest(user.email);
+                                      },
+                                      child: user.isLoading
+                                          ? Lottie.asset(
+                                              "asset/loadingrequest.json",
+                                              fit: BoxFit.cover,
+                                              filterQuality: FilterQuality.high,
+                                            )
+                                          : Container(
+                                              alignment: Alignment.center,
+                                              margin: const EdgeInsets.all(10),
+                                              height: 40,
+                                              width: 80,
+                                              decoration: BoxDecoration(
+                                                color: Colors.yellow,
+                                                borderRadius:
+                                                    BorderRadiusDirectional
+                                                        .circular(20),
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceEvenly,
+                                                children: [
+                                                  const SizedBox(width: 8),
+                                                  SizedBox(
+                                                    height: 20,
+                                                    width: 20,
+                                                    child: Image.asset(
+                                                      "asset/invite.png",
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 10),
+                                                  const Text(
+                                                    "Add",
+                                                    style: TextStyle(
+                                                        color: Colors.black),
+                                                  ),
+                                                  const SizedBox(width: 10),
+                                                ],
+                                              ),
+                                            ),
+                                    ),
+                                    const Spacer(),
+                                    Image.asset(
+                                      "asset/cross.png",
+                                      width: 15,
+                                      height: 13,
+                                      color: Colors.white,
+                                    ),
                                   ],
                                 ),
                               ),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 10, right: 20, top: 10),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        alignment: Alignment.center,
-                                        margin: const EdgeInsets.all(10),
-                                        height: 40,
-                                        width: 80,
-                                        decoration: BoxDecoration(
-                                          color: Colors.yellow,
-                                          borderRadius:
-                                              BorderRadiusDirectional.circular(
-                                                  20),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            const SizedBox(
-                                              width: 8,
-                                            ),
-                                            SizedBox(
-                                              height: 20,
-                                              width: 20,
-                                              child: Image.asset(
-                                                "asset/invite.png",
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              width: 10,
-                                            ),
-                                            const Text(
-                                              "Add",
-                                              style: TextStyle(
-                                                  color: Colors.black),
-                                            ),
-                                            const SizedBox(
-                                              width: 10,
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      GestureDetector(
-                                        onTap: () {},
-                                        child: Image.asset(
-                                          filterQuality: FilterQuality.high,
-                                          fit: BoxFit.cover,
-                                          "asset/cross.png",
-                                          width: 15,
-                                          height: 13,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ));
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
                   },
                 ),
               ),

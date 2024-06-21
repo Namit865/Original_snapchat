@@ -68,7 +68,7 @@ class _SettingPageState extends State<SettingPage> {
         ),
       ),
       body: SingleChildScrollView(
-        child: Container(
+        child: SizedBox(
           height: MediaQuery.of(context).size.height,
           child: ListView.builder(
             itemCount: settingItems.length,
@@ -76,7 +76,11 @@ class _SettingPageState extends State<SettingPage> {
               var setting = settingItems[index];
               return ListTile(
                 tileColor: const Color(0xff1D1D1D),
-                onTap: (){},
+                onTap: (){
+                  Get.dialog(
+                      showAlertBox()
+                  );
+                },
                 title:
                     Text(setting.title, style: TextStyle(color: Colors.white)),
                 trailing: setting.trailingText != null

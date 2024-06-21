@@ -7,7 +7,6 @@ import 'package:get/get.dart';
 class HomePageController extends GetxController {
   late RxInt currentIndex = 1.obs;
   RxList<userData> fetchedAllUserData = <userData>[].obs;
-
   RxBool isDark = false.obs;
 
   void changeIndex(int index) {

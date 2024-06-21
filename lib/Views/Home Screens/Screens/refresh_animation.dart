@@ -5,7 +5,7 @@ import 'package:lottie/lottie.dart';
 
 class _Cloud {
   static const _light = Color(0xFF96CDDE);
-  static const _dark = Color(0xFF6AABBF);
+  static const _dark = Color(0xFF6AABBF) ;
   static const _normal = Color(0xFFACCFDA);
 
   static const _assets = [
