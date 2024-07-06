@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rxdart/rxdart.dart';
 import '../Controller/authcontroller.dart';
 import '../Models/fetchChatRoomUsers.dart';
-import '../Models/friendrequest.dart';
 import '../Models/user.dart';
 
 class FireStoreHelper {
@@ -49,7 +48,7 @@ class FireStoreHelper {
     String chatRoomId = sortedUserIds.join('_');
 
     DocumentSnapshot chatRoomSnapshot =
-    await firebaseFireStore.collection('chats').doc(chatRoomId).get();
+        await firebaseFireStore.collection('chats').doc(chatRoomId).get();
 
     if (!chatRoomSnapshot.exists) {
       await firebaseFireStore.collection('chats').doc(chatRoomId).set({
@@ -84,6 +83,16 @@ class FireStoreHelper {
     });
   }
 
+  Future<void> deleteMessage(String chatRoomId, String messageId) async {
+    await firebaseFireStore
+        .collection('chats')
+        .doc(chatRoomId)
+        .collection('messages')
+        .doc(messageId)
+        .delete();
+  }
+
+
   Stream<String> getLastMessage(String userEmail) {
     String chatRoomId = "${AuthController.currentUser!.email!}_$userEmail";
     String reverseChatRoomId =
@@ -95,28 +104,28 @@ class FireStoreHelper {
         .snapshots()
         .flatMap(
           (chatRoomSnapshot) {
-        if (chatRoomSnapshot.docs.isNotEmpty) {
-          String chatRoomDocId = chatRoomSnapshot.docs.first.id;
+            if (chatRoomSnapshot.docs.isNotEmpty) {
+              String chatRoomDocId = chatRoomSnapshot.docs.first.id;
 
-          return firebaseFireStore
-              .collection('chats')
-              .doc(chatRoomDocId)
-              .collection('messages')
-              .orderBy('time', descending: true)
-              .limit(1)
-              .snapshots()
-              .map((messagesSnapshot) {
-            if (messagesSnapshot.docs.isNotEmpty) {
-              return messagesSnapshot.docs.first.get('message');
+              return firebaseFireStore
+                  .collection('chats')
+                  .doc(chatRoomDocId)
+                  .collection('messages')
+                  .orderBy('time', descending: true)
+                  .limit(1)
+                  .snapshots()
+                  .map((messagesSnapshot) {
+                if (messagesSnapshot.docs.isNotEmpty) {
+                  return messagesSnapshot.docs.first.get('message');
+                } else {
+                  return 'No messages yet';
+                }
+              });
             } else {
-              return 'No messages yet';
+              return Stream.value('');
             }
-          });
-        } else {
-          return Stream.value('');
-        }
-      },
-    );
+          },
+        );
   }
 
   Future<void> markMessagesAsRead(String chatRoomId) async {
@@ -143,105 +152,57 @@ class FireStoreHelper {
         .where('chat_id', whereIn: [chatRoomId, reverseChatRoomId])
         .snapshots()
         .flatMap((chatRoomSnapshot) {
-      if (chatRoomSnapshot.docs.isNotEmpty) {
-        String chatRoomDocId = chatRoomSnapshot.docs.first.id;
-        return firebaseFireStore
-            .collection('chats')
-            .doc(chatRoomDocId)
-            .collection('messages')
-            .where('receiver', isEqualTo: AuthController.currentUser!.email)
-            .where('read', isEqualTo: false)
-            .snapshots()
-            .map((messageSnapshot) => messageSnapshot.docs.length);
-      } else {
-        return Stream.value(0);
-      }
-    });
+          if (chatRoomSnapshot.docs.isNotEmpty) {
+            String chatRoomDocId = chatRoomSnapshot.docs.first.id;
+            return firebaseFireStore
+                .collection('chats')
+                .doc(chatRoomDocId)
+                .collection('messages')
+                .where('receiver', isEqualTo: AuthController.currentUser!.email)
+                .where('read', isEqualTo: false)
+                .snapshots()
+                .map((messageSnapshot) => messageSnapshot.docs.length);
+          } else {
+            return Stream.value(0);
+          }
+        });
   }
 
-  Future<void> sendFriendRequest(String receiverId) async {
-    String senderId = AuthController.currentUser!.email!;
-
-    // Check if a friend request already exists
-    QuerySnapshot existingRequest = await firebaseFireStore
-        .collection('friendRequests')
-        .where('senderId', isEqualTo: senderId)
-        .where('receiverId', isEqualTo: receiverId)
-        .get();
-
-    if (existingRequest.docs.isNotEmpty) {
-      print('Friend request already sent');
-      return;
-    }
-
+  Future<void> sendFriendRequest(String receiverEmail) async {
     try {
+      String currentUserEmail = AuthController.currentUser!.email!;
       await firebaseFireStore.collection('friendRequests').add({
-        'senderId': senderId,
-        'receiverId': receiverId,
+        'senderId': currentUserEmail,
+        'receiverId': receiverEmail,
         'status': 'pending',
         'timestamp': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('Error sending friend request: $e');
-      rethrow;
+      print(e);
     }
   }
 
-  Future<void> acceptFriendRequest(String requestId) async {
+  Future<bool> checkIfAlreadyFriends(String email, String userEmail) async {
     try {
-      DocumentSnapshot requestSnapshot = await firebaseFireStore
-          .collection('friendRequests')
-          .doc(requestId)
+      var friendsSnapshot = await FirebaseFirestore.instance
+          .collection('friends')
+          .where('userId', isEqualTo: AuthController.currentUser!.email)
+          .where(userEmail, isEqualTo: email)
           .get();
-
-      if (requestSnapshot.exists) {
-        String senderId = requestSnapshot['senderId'];
-        String receiverId = requestSnapshot['receiverId'];
-        await firebaseFireStore
-            .collection('friendRequests')
-            .doc(requestId)
-            .update({'status': 'accepted'});
-
-        await addFriend(senderId, receiverId);
-        await addFriend(receiverId, senderId);
-      } else {
-        print('Error: Request not found');
-      }
+      return friendsSnapshot.docs.isNotEmpty;
     } catch (e) {
-      print('Error accepting friend request: $e');
-      rethrow;
+      print('Failed to check if already friends: $e');
+      return false;
     }
   }
 
-  Future<void> rejectFriendRequest(String requestId) async {
-    try {
-      print('Rejecting friend request with ID: $requestId');
-      DocumentSnapshot requestSnapshot = await firebaseFireStore
-          .collection('friendRequests')
-          .doc(requestId)
-          .get();
-
-      if (requestSnapshot.exists) {
-        await firebaseFireStore
-            .collection('friendRequests')
-            .doc(requestId)
-            .update({'status': 'rejected'});
-        print('Friend request rejected successfully');
-      } else {
-        print('Error: Request not found');
-      }
-    } catch (e) {
-      print('Error rejecting friend request: $e');
-      // Handle error appropriately
-      rethrow; // Re-throw the error to propagate it up the call stack
-    }
-  }
-
-  Future<void> addFriend(String userId, String friendId) async {
+  Future<void> addFriend(
+      String chatRoom, String friendId, String userId) async {
+    chatRoom = AuthController.currentUser!.email!;
     try {
       await firebaseFireStore
-          .collection('users')
-          .doc(userId)
+          .collection('chats')
+          .doc(chatRoom)
           .collection('friends')
           .doc(friendId)
           .set({
@@ -261,19 +222,60 @@ class FireStoreHelper {
         .collection('friends')
         .snapshots()
         .map((snapshot) =>
-        snapshot.docs.map((doc) => doc['friendId'] as String).toList());
+            snapshot.docs.map((doc) => doc['friendId'] as String).toList());
   }
 
-  Stream<List<FriendRequest>> getPendingFriendRequests() {
-    String userId = AuthController.currentUser!.email!;
-
-    return firebaseFireStore
+  Future<List<String>> fetchPendingFriendRequests() async {
+    QuerySnapshot snapshot = await firebaseFireStore
         .collection('friendRequests')
-        .where('receiverId', isEqualTo: userId)
+        .where('senderId', isEqualTo: AuthController.currentUser!.email)
         .where('status', isEqualTo: 'pending')
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => FriendRequest.fromDocument(doc))
-        .toList());
+        .get();
+
+    List<String> pendingRequests =
+        snapshot.docs.map((doc) => doc['receiverId'] as String).toList();
+    return pendingRequests;
+  }
+
+  Future<List<userData>> fetchAcceptedFriends(String currentUserEmail) async {
+    List<userData> friends = [];
+    print("Fetching from Firestore for user: $currentUserEmail");
+
+    QuerySnapshot senderSnapshot = await firebaseFireStore
+        .collection('friends')
+        .where('senderId', isEqualTo: currentUserEmail)
+        .where('status', isEqualTo: 'accepted')
+        .get();
+
+    print("Sender Query Snapshot Docs: ${senderSnapshot.docs.length}");
+
+    QuerySnapshot receiverSnapshot = await firebaseFireStore
+        .collection('friends')
+        .where('receiverId', isEqualTo: currentUserEmail)
+        .where('status', isEqualTo: 'accepted')
+        .get();
+
+    print("Receiver Query Snapshot Docs: ${receiverSnapshot.docs.length}");
+
+    List<QueryDocumentSnapshot> allDocs =
+        senderSnapshot.docs + receiverSnapshot.docs;
+
+    for (var doc in allDocs) {
+      print("Document Data: ${doc.data()}");
+
+      String friendEmail = doc['senderId'] == currentUserEmail
+          ? doc['receiverId']
+          : doc['senderId'];
+      DocumentSnapshot userSnapshot =
+          await firebaseFireStore.collection('users').doc(friendEmail).get();
+
+      if (userSnapshot.exists) {
+        print("Friend User Document Data: ${userSnapshot.data()}");
+        friends.add(userData.fromDocument(userSnapshot));
+      }
+    }
+
+    print("Friends list constructed: ${friends.length}");
+    return friends;
   }
 }

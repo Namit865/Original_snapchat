@@ -216,7 +216,7 @@ class _CameraScreenState extends State<CameraScreen> {
                     : null,
               ),
             ),
-            SizedBox(
+            const SizedBox(
               width: 5,
             ),
             IconButton(
@@ -234,7 +234,7 @@ class _CameraScreenState extends State<CameraScreen> {
             onTap: () {
               Get.to(
                 transition: Transition.downToUp,
-                () =>  const AddFriends(),
+                () => const AddFriends(),
               );
             },
             child: Container(
@@ -264,94 +264,92 @@ class _CameraScreenState extends State<CameraScreen> {
           const SizedBox(width: 10),
         ],
       ),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              if (_isCameraInitialized)
-                Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    Transform(
-                      filterQuality: FilterQuality.high,
-                      alignment: Alignment.center,
-                      transform: Matrix4.rotationY(math.pi * 8),
-                      child: CameraPreview(_controller!),
-                    ),
-                    GestureDetector(
-                      onLongPressStart: (_) async {
-                        await startRecording();
-                        setState(() {
-                          incHeight = 130;
-                          incWidth = 130;
-                        });
-                      },
-                      onLongPressEnd: (_) async {
-                        await stopRecording();
-                        setState(() {
-                          incHeight = 100;
-                          incWidth = 100;
-                        });
-                      },
-                      onTap: () {
-                        _takePicture();
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 30),
-                        height: incHeight,
-                        width: incWidth,
-                        decoration: const BoxDecoration(
-                          color: Colors.yellowAccent,
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(60),
-                          ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            if (_isCameraInitialized)
+              Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  Transform(
+                    filterQuality: FilterQuality.high,
+                    alignment: Alignment.center,
+                    transform: Matrix4.rotationY(math.pi * 8),
+                    child: CameraPreview(_controller!),
+                  ),
+                  GestureDetector(
+                    onLongPressStart: (_) async {
+                      await startRecording();
+                      setState(() {
+                        incHeight = 130;
+                        incWidth = 130;
+                      });
+                    },
+                    onLongPressEnd: (_) async {
+                      await stopRecording();
+                      setState(() {
+                        incHeight = 100;
+                        incWidth = 100;
+                      });
+                    },
+                    onTap: () {
+                      _takePicture();
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 30),
+                      height: incHeight,
+                      width: incWidth,
+                      decoration: const BoxDecoration(
+                        color: Colors.yellowAccent,
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(60),
                         ),
                       ),
                     ),
-                    Positioned(
-                      left: 60,
-                      bottom: 50,
-                      child: IconButton(
-                        onPressed: () {},
-                        icon: SizedBox(
-                          height: 30,
-                          child: Image.asset(
-                            "asset/album.png",
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      right: 60,
-                      bottom: 50,
-                      child: IconButton(
-                        onPressed: () {},
-                        icon: const Icon(
-                          CupertinoIcons.smiley,
-                          size: 35,
+                  ),
+                  Positioned(
+                    left: 60,
+                    bottom: 50,
+                    child: IconButton(
+                      onPressed: () {},
+                      icon: SizedBox(
+                        height: 30,
+                        child: Image.asset(
+                          "asset/album.png",
                           color: Colors.white,
                         ),
                       ),
                     ),
-                    if (isRecording && showBlinkingText)
-                      const Positioned(
-                        bottom: 650,
-                        child: Center(
-                          child: Text(
-                            "Recording....",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                color: Colors.yellow,
-                                fontSize: 25),
-                          ),
+                  ),
+                  Positioned(
+                    right: 60,
+                    bottom: 50,
+                    child: IconButton(
+                      onPressed: () {},
+                      icon: const Icon(
+                        CupertinoIcons.smiley,
+                        size: 35,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  if (isRecording && showBlinkingText)
+                    const Positioned(
+                      bottom: 650,
+                      child: Center(
+                        child: Text(
+                          "Recording....",
+                          style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.yellow,
+                              fontSize: 25),
                         ),
                       ),
-                  ],
-                ),
-            ],
-          ),
-        ],
+                    ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }

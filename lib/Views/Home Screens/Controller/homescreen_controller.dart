@@ -1,8 +1,9 @@
-import 'package:chat_app/Helper/firebase_helper.dart';
-import 'package:chat_app/Models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../Controller/authcontroller.dart';
+import '../../../Helper/firebase_helper.dart';
+import '../../../Models/user.dart';
 
 class HomePageController extends GetxController {
   late RxInt currentIndex = 1.obs;
@@ -40,5 +41,4 @@ class HomePageController extends GetxController {
     Get.changeThemeMode(isDark.value ? ThemeMode.light : ThemeMode.dark);
     update();
   }
-
 }

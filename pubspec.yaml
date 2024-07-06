@@ -36,7 +36,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons:
   firebase_core:
-  get:
+  get: ^4.6.6
   flutter_login:
   firebase_auth:
   awesome_icons:
@@ -60,10 +60,8 @@ dependencies:
   ios_search_appbar:
   flutter_webrtc:
   spoiler_widget:
-  star_menu:
-  pie_menu:
-  animations:
-  circular_reveal_animation:
+  snappable_thanos:
+  flutter_slidable:
 
 dev_dependencies:
   flutter_test:

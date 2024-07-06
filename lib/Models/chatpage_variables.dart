@@ -8,6 +8,7 @@ class getMessageData {
   String time;
   bool read;
   bool isSpoiler;
+  String id;
 
   getMessageData({
     required this.sender,
@@ -16,6 +17,7 @@ class getMessageData {
     required this.time,
     required this.read,
     required this.isSpoiler,
+    required this.id,
   });
 
   factory getMessageData.fromMap(Map<String, dynamic> map) {
@@ -31,6 +33,7 @@ class getMessageData {
       time: formattedTime,
       read: map['read'],
       isSpoiler: map['isSpoiler'],
+      id: map['id'],
     );
   }
 

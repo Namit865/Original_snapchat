@@ -1,12 +1,11 @@
-import 'package:chat_app/Views/Home%20Screens/Screens/refresh_animation.dart';
-import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:chat_app/Helper/firebase_helper.dart';
-import 'package:lottie/lottie.dart';
-import 'package:awesome_icons/awesome_icons.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
+import '../../../Helper/firebase_helper.dart';
 import '../Controller/homescreen_controller.dart';
+import 'refresh_animation.dart';
 
 class AddFriends extends StatefulWidget {
   const AddFriends({super.key});
@@ -16,20 +15,31 @@ class AddFriends extends StatefulWidget {
 }
 
 class _AddFriendsState extends State<AddFriends> {
-  HomePageController controller = Get.put(HomePageController());
+  final HomePageController controller = Get.put(HomePageController());
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  final ValueNotifier<bool> _isEditing = ValueNotifier(false);
+  List<String> pendingFriendRequests = [];
 
   @override
   void initState() {
     super.initState();
     _focusNode.addListener(() {
-      _isEditing.value = _focusNode.hasFocus || _controller.text.isNotEmpty;
+      setState(() {});
     });
-    _controller.addListener(() {
-      _isEditing.value = _focusNode.hasFocus || _controller.text.isNotEmpty;
-    });
+    fetchPendingRequests();
+  }
+
+  Future<void> fetchPendingRequests() async {
+    pendingFriendRequests =
+        await FireStoreHelper.fireStoreHelper.fetchPendingFriendRequests();
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -37,6 +47,11 @@ class _AddFriendsState extends State<AddFriends> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Friends'),
+        leading: GestureDetector(
+            onTap: () {
+              Get.back();
+            },
+            child: const Icon(CupertinoIcons.back)),
         actions: [
           IconButton(
             onPressed: () {
@@ -46,13 +61,10 @@ class _AddFriendsState extends State<AddFriends> {
                 const MoreButtonListFriends(),
               );
             },
-            icon: GestureDetector(
-              onTap: () {},
-              child: const Icon(
-                Icons.more_horiz,
-                size: 30,
-                color: Colors.white,
-              ),
+            icon: const Icon(
+              Icons.more_horiz,
+              size: 30,
+              color: Colors.white,
             ),
           ),
           const SizedBox(width: 5),
@@ -62,30 +74,31 @@ class _AddFriendsState extends State<AddFriends> {
         children: [
           SizedBox(
             width: double.infinity,
-            child: ValueListenableBuilder(
-              valueListenable: _isEditing,
-              builder: (BuildContext context, bool value, Widget? child) =>
-                  CupertinoSearchTextField(
-                controller: _controller,
-                suffixInsets: const EdgeInsets.only(right: 10),
-                suffixMode: OverlayVisibilityMode.always,
-                suffixIcon: value
-                    ? const Icon(FontAwesomeIcons.skullCrossbones)
-                    : const Icon(Icons.contacts_outlined),
-                onSuffixTap: () {
-                  if (value) {
-                    _controller.clear();
-                    _focusNode.unfocus();
-                  }
-                },
-                style: const TextStyle(color: Colors.white),
-              ),
+            child: CupertinoSearchTextField(
+              controller: _controller,
+              focusNode: _focusNode,
+              suffixInsets: const EdgeInsets.only(right: 10),
+              suffixMode: OverlayVisibilityMode.always,
+              suffixIcon: _focusNode.hasFocus || _controller.text.isNotEmpty
+                  ? const Icon(Icons.clear)
+                  : const Icon(Icons.search),
+              onSuffixTap: () {
+                if (_focusNode.hasFocus || _controller.text.isNotEmpty) {
+                  _controller.clear();
+                  _focusNode.unfocus();
+                }
+              },
+              onChanged: (value) {
+                setState(() {});
+              },
             ),
           ),
           Expanded(
             child: CustomRefreshIndicator(
-              onRefresh: () =>
-                  FireStoreHelper.fireStoreHelper.fetchAllUserData(),
+              onRefresh: () async {
+                await FireStoreHelper.fireStoreHelper.fetchAllUserData();
+                await fetchPendingRequests();
+              },
               builder: (context, child, controller) =>
                   PlaneIndicator(child: child),
               notificationPredicate: (notification) {
@@ -93,116 +106,140 @@ class _AddFriendsState extends State<AddFriends> {
               },
               child: Container(
                 color: Colors.black,
-                child: ListView.builder(
-                  itemCount: controller.fetchedAllUserData.length,
-                  itemBuilder: (context, index) {
-                    var user = controller.fetchedAllUserData[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 1, bottom: 1),
-                      child: SizedBox(
-                        height: 60,
-                        width: double.infinity,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            const SizedBox(width: 15),
-                            const CircleAvatar(
-                              backgroundColor: Colors.white10,
-                              foregroundColor: Colors.white30,
-                              radius: 25,
-                              child: Icon(Icons.person, size: 30),
-                            ),
-                            const SizedBox(width: 15),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    user.name,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.white,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Text(
-                                    user.email,
-                                    style: const TextStyle(color: Colors.white),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 10,
-                                  right: 20,
-                                  top: 10,
+                child: FutureBuilder<List<QueryDocumentSnapshot>>(
+                  future: FireStoreHelper.fireStoreHelper.fetchAllUserData(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('No users found.'));
+                    }
+                    var userList = snapshot.data!;
+                    return ListView.builder(
+                      itemCount: userList.length,
+                      itemBuilder: (context, index) {
+                        var user = userList[index];
+                        bool isRequested =
+                            pendingFriendRequests.contains(user['email']);
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: SizedBox(
+                            height: 60,
+                            child: Row(
+                              children: [
+                                const SizedBox(width: 15),
+                                const CircleAvatar(
+                                  backgroundColor: Colors.white10,
+                                  foregroundColor: Colors.white30,
+                                  radius: 25,
+                                  child: Icon(Icons.person, size: 30),
                                 ),
-                                child: Row(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        FireStoreHelper.fireStoreHelper
-                                            .sendFriendRequest(user.email);
-                                      },
-                                      child: user.isLoading
-                                          ? Lottie.asset(
-                                              "asset/loadingrequest.json",
-                                              fit: BoxFit.cover,
-                                              filterQuality: FilterQuality.high,
-                                            )
-                                          : Container(
-                                              alignment: Alignment.center,
-                                              margin: const EdgeInsets.all(10),
-                                              height: 40,
-                                              width: 80,
-                                              decoration: BoxDecoration(
-                                                color: Colors.yellow,
-                                                borderRadius:
-                                                    BorderRadiusDirectional
-                                                        .circular(20),
-                                              ),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceEvenly,
-                                                children: [
-                                                  const SizedBox(width: 8),
-                                                  SizedBox(
-                                                    height: 20,
-                                                    width: 20,
-                                                    child: Image.asset(
-                                                      "asset/invite.png",
+                                const SizedBox(width: 15),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        user['name'],
+                                        style: const TextStyle(
+                                            fontSize: 16, color: Colors.white),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        user['email'],
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 10,
+                                      right: 20,
+                                      top: 10,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: isRequested
+                                              ? null
+                                              : () {
+                                                  FireStoreHelper
+                                                      .fireStoreHelper
+                                                      .sendFriendRequest(
+                                                          user['email'])
+                                                      .then(
+                                                    (value) {
+                                                      setState(() {
+                                                        pendingFriendRequests
+                                                            .add(user['email']);
+                                                      });
+                                                      Get.snackbar(
+                                                        "Friend Request Sent Successfully",
+                                                        '',
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                          child: Container(
+                                            alignment: Alignment.center,
+                                            width: 100,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              color: isRequested
+                                                  ? Colors.grey
+                                                  : Colors.yellow,
+                                              borderRadius:
+                                                  BorderRadiusDirectional
+                                                      .circular(30),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                const SizedBox(width: 10),
+                                                Expanded(
+                                                  child: Text(
+                                                    isRequested
+                                                        ? "Requested"
+                                                        : "Add",
+                                                    textAlign: TextAlign.center,
+                                                    style: const TextStyle(
+                                                      color: Colors.black,
                                                     ),
                                                   ),
-                                                  const SizedBox(width: 10),
-                                                  const Text(
-                                                    "Add",
-                                                    style: TextStyle(
-                                                        color: Colors.black),
-                                                  ),
-                                                  const SizedBox(width: 10),
-                                                ],
-                                              ),
+                                                ),
+                                                const SizedBox(width: 10),
+                                              ],
                                             ),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                        isRequested
+                                            ? Container()
+                                            : Image.asset(
+                                                "asset/cross.png",
+                                                color: Colors.white,
+                                                filterQuality:
+                                                    FilterQuality.high,
+                                                height: 15,
+                                                width: 15,
+                                              ),
+                                      ],
                                     ),
-                                    const Spacer(),
-                                    Image.asset(
-                                      "asset/cross.png",
-                                      width: 15,
-                                      height: 13,
-                                      color: Colors.white,
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
@@ -215,14 +252,9 @@ class _AddFriendsState extends State<AddFriends> {
   }
 }
 
-class MoreButtonListFriends extends StatefulWidget {
+class MoreButtonListFriends extends StatelessWidget {
   const MoreButtonListFriends({super.key});
 
-  @override
-  State<MoreButtonListFriends> createState() => _MoreButtonListFriendsState();
-}
-
-class _MoreButtonListFriendsState extends State<MoreButtonListFriends> {
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -234,10 +266,10 @@ class _MoreButtonListFriendsState extends State<MoreButtonListFriends> {
             Container(
               height: 200,
               width: double.infinity,
-              margin: const EdgeInsets.only(left: 10, right: 10),
+              margin: const EdgeInsets.symmetric(horizontal: 10),
               decoration: const BoxDecoration(
                 color: Colors.black,
-                borderRadius: BorderRadiusDirectional.all(
+                borderRadius: BorderRadius.all(
                   Radius.circular(10),
                 ),
               ),
@@ -250,9 +282,9 @@ class _MoreButtonListFriendsState extends State<MoreButtonListFriends> {
                     alignment: Alignment.centerLeft,
                     decoration: const BoxDecoration(
                       color: Color(0xff1D1D1D),
-                      borderRadius: BorderRadiusDirectional.only(
-                        topStart: Radius.circular(20),
-                        topEnd: Radius.circular(20),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
                       ),
                     ),
                     child: const Text(
@@ -292,13 +324,13 @@ class _MoreButtonListFriendsState extends State<MoreButtonListFriends> {
                     alignment: Alignment.centerLeft,
                     decoration: const BoxDecoration(
                       color: Color(0xff1D1D1D),
-                      borderRadius: BorderRadiusDirectional.only(
-                        bottomStart: Radius.circular(20),
-                        bottomEnd: Radius.circular(20),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(20),
+                        bottomRight: Radius.circular(20),
                       ),
                     ),
                     child: const Text(
-                      "Recently Added",
+                      "Blocked",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -308,38 +340,30 @@ class _MoreButtonListFriendsState extends State<MoreButtonListFriends> {
                 ],
               ),
             ),
-            const SizedBox(
-              height: 5,
-            ),
             GestureDetector(
               onTap: () {
-                Get.back();
+                Navigator.of(context).pop();
               },
               child: Container(
-                alignment: Alignment.center,
                 height: 65,
                 width: double.infinity,
-                margin: const EdgeInsets.only(
-                  left: 10,
-                  right: 10,
-                ),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                alignment: Alignment.center,
                 decoration: const BoxDecoration(
-                  color: Color(0xff1D1D1D),
-                  borderRadius: BorderRadiusDirectional.all(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.all(
                     Radius.circular(10),
                   ),
                 ),
                 child: const Text(
-                  "Done",
+                  "Cancel",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
-            ),
-            const SizedBox(
-              height: 10,
             )
           ],
         ),

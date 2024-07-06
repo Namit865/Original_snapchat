@@ -1,16 +1,17 @@
 import 'package:chat_app/Controller/authcontroller.dart';
 import 'package:chat_app/Helper/firebase_helper.dart';
-import 'package:chat_app/Views/Friend%20Screen/manage_friendship.dart';
 import 'package:chat_app/Views/Home%20Screens/Profile%20Screens/profile_screen.dart';
 import 'package:chat_app/Views/Home%20Screens/Screens/addFriends.dart';
 import 'package:chat_app/Views/Home%20Screens/Screens/chatpage.dart';
+import 'package:chat_app/Views/Home%20Screens/Screens/refresh_animation.dart';
 import 'package:chat_app/Views/Home%20Screens/Setting%20Screen/setting_screen.dart';
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lottie/lottie.dart';
 import 'package:spoiler_widget/spoiler_text_widget.dart';
+import '../../Friend Screen/friendrequest_management.dart';
 import '../Controller/homescreen_controller.dart';
-import 'refresh_animation.dart';
 
 class ChatList extends StatefulWidget {
   const ChatList({Key? key}) : super(key: key);
@@ -23,6 +24,11 @@ class _ChatListState extends State<ChatList> {
   final HomePageController controller = Get.put(HomePageController());
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
@@ -30,7 +36,7 @@ class _ChatListState extends State<ChatList> {
         () => Center(
           child: CustomRefreshIndicator(
             onRefresh: () async {
-              await FireStoreHelper.fireStoreHelper.fetchAllUserData();
+              controller.fetchedAllUserData();
             },
             builder: (BuildContext context, Widget child,
                 IndicatorController controller) {
@@ -75,7 +81,7 @@ class _ChatListState extends State<ChatList> {
             );
           },
           child: CircleAvatar(
-            backgroundColor: Colors.black38,
+            backgroundColor: const Color(0xff0074FF).withOpacity(0.3),
             backgroundImage: (AuthController.currentUser?.photoURL != null)
                 ? NetworkImage(AuthController.currentUser!.photoURL!)
                 : null,
@@ -182,11 +188,8 @@ class _ChatListState extends State<ChatList> {
                     child: Container(
                       height: 60,
                       width: double.infinity,
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        color:
-                            hasUnreadMessages ? Colors.blue[50] : Colors.white,
-                      ),
+                      // clipBehavior: Clip.antiAlias,
+                      color: Colors.white,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
@@ -206,8 +209,8 @@ class _ChatListState extends State<ChatList> {
                               );
                             },
                             child: const CircleAvatar(
-                              backgroundColor: Colors.black12,
-                              foregroundColor: Colors.black38,
+                              backgroundColor: Color(0xff82CDFF),
+                              foregroundColor: Colors.black45,
                               radius: 25,
                               child: Icon(Icons.person, size: 30),
                             ),
@@ -230,42 +233,81 @@ class _ChatListState extends State<ChatList> {
     );
   }
 
-  Column _buildUserDetails(user, bool hasUnreadMessages) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
+  Row _buildUserDetails(user, bool hasUnreadMessages) {
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Text(
-          user.name,
-          style: TextStyle(
-            fontSize: 16,
-            color: hasUnreadMessages ? Colors.black : Colors.black,
-            fontWeight: hasUnreadMessages ? FontWeight.w700 : FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 5),
-        StreamBuilder(
-          stream: FireStoreHelper.fireStoreHelper.getLastMessage(user.email),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return SpoilerTextWidget(
-                text: snapshot.data!,
-                style: const TextStyle(
-                  color: Colors.black,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              user.name,
+              style: TextStyle(
+                fontSize: 16,
+                color:
+                    hasUnreadMessages ? const Color(0xff0074FF) : Colors.black,
+                fontWeight:
+                    hasUnreadMessages ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Row(
+              children: [
+                StreamBuilder(
+                  stream: FireStoreHelper.fireStoreHelper
+                      .getLastMessage(user.email),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return IntrinsicHeight(
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width - 150,
+                          child: SpoilerTextWidget(
+                            text: snapshot.data!,
+                            style: const TextStyle(
+                              color: Colors.black,
+                            ),
+                            particleColor: const Color(0xff0074FF),
+                            enable: hasUnreadMessages ? true : false,
+                            maxParticleSize: 1.5,
+                            fadeRadius: 1,
+                            particleDensity: 0.4,
+                            fadeAnimation: true,
+                            speedOfParticles: 0.3,
+                          ),
+                        ),
+                      );
+                    } else {
+                      return const Text('');
+                    }
+                  },
                 ),
-                particleColor: Colors.black,
-                enable: hasUnreadMessages ? true : false,
-                maxParticleSize: 1.5,
-                fadeRadius: 1,
-                particleDensity: 0.4,
-                fadeAnimation: true,
-                speedOfParticles: 0.3,
-              );
-            } else {
-              return const Text('');
-            }
-          },
+              ],
+            ),
+          ],
         ),
+        const SizedBox(
+          width: 30,
+        ),
+        hasUnreadMessages
+            ? Container(
+                alignment: Alignment.center,
+                height: 8,
+                width: 8,
+                decoration: const BoxDecoration(
+                  color: Color(0xff2E74FF),
+                  shape: BoxShape.circle,
+                  boxShadow: <BoxShadow>[
+                    BoxShadow(
+                        spreadRadius: 2,
+                        color: Colors.lightBlue,
+                        blurStyle: BlurStyle.outer,
+                        blurRadius: Checkbox.width)
+                  ],
+                ),
+              )
+            : Container(),
       ],
     );
   }
@@ -275,61 +317,79 @@ class ProfileDialogue extends StatelessWidget {
   final String name;
   final String email;
 
-  const ProfileDialogue({required this.name, required this.email});
+  const ProfileDialogue({
+    Key? key,
+    required this.name,
+    required this.email,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 400,
-      width: MediaQuery.of(context).size.width,
-      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        color: Colors.black,
+      ),
       child: Column(
-        mainAxisSize: MainAxisSize.max,
         children: [
-          Text(
-            AuthController.currentUser?.displayName ?? '',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 30,
+              ),
+              GestureDetector(
+                onTap: () {
+                  Get.back();
+                },
+                child: const CircleAvatar(
+                  backgroundColor: Colors.white60,
+                  foregroundColor: Colors.black38,
+                  radius: 50,
+                  child: Icon(Icons.person, size: 50),
+                ),
+              ),
+              const SizedBox(height: 15),
+              Text(
+                name,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                email,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
-          CircleAvatar(
-            backgroundColor: Colors.white,
-            radius: 60,
-            backgroundImage: AuthController.currentUser?.photoURL != null
-                ? NetworkImage(AuthController.currentUser!.photoURL!)
-                : null,
-            child: AuthController.currentUser?.photoURL == null
-                ? const Icon(
-                    Icons.person,
-                    color: Colors.black,
-                    size: 60,
-                  )
-                : null,
+          const Spacer(),
+          const Divider(
+            color: Colors.white12,
+            thickness: 1,
           ),
-          const SizedBox(height: 20),
-          Text(
-            name,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            email,
-            style: const TextStyle(
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 15),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              elevation: 0,
+            ),
             onPressed: () {
               Get.back();
             },
             child: const Text('Close'),
           ),
+          const SizedBox(height: 10),
         ],
       ),
     );
@@ -395,7 +455,7 @@ class BottomSheetContent extends StatelessWidget {
                 onTap: () {
                   Get.to(
                     transition: Transition.fadeIn,
-                    () => ManageFriendship(),
+                    () => const ManageFriendship(),
                   );
                 },
                 title: const Text("Manage Friendships"),

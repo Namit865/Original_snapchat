@@ -24,4 +24,14 @@ class FriendRequest {
       timestamp: doc['timestamp'],
     );
   }
+
+  factory FriendRequest.fromMap(Map<String, dynamic> map) {
+    return FriendRequest(
+      id: map['id'],
+      status: map['status'],
+      senderId: map['senderId'],
+      receiverId: map['receiverId'],
+      timestamp: map['timestamp'],
+    );
+   }
 }

@@ -1,5 +1,6 @@
 import 'package:bottom_bar_matu/bottom_bar_double_bullet/bottom_bar_double_bullet.dart';
 import 'package:bottom_bar_matu/bottom_bar_item.dart';
+import 'package:chat_app/Helper/firebase_helper.dart';
 import 'package:chat_app/Views/Home Screens/Screens/stories_page.dart';
 import 'package:chat_app/Views/Home%20Screens/Screens/chatList.dart';
 import 'package:flutter/cupertino.dart';
@@ -23,7 +24,6 @@ class _HomeScreenState extends State<HomeScreen> {
     const ChatList(),
     CameraScreen(),
     const Stories(),
-
   ];
 
   void _onTabSelected(int index) {
@@ -44,23 +44,23 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: Obx(
         () => BottomBarDoubleBullet(
-          height: 60,
-          circle1Color: Colors.yellow,
-          circle2Color: Colors.black,
-          selectedIndex: controller.currentIndex.value,
-          onSelect: _onTabSelected,
-          items: [
-            BottomBarItem(
-              iconData: CupertinoIcons.chat_bubble,
-            ),
-            BottomBarItem(
-              iconData: CupertinoIcons.camera,
-            ),
-            BottomBarItem(
-              iconData: CupertinoIcons.person_2,
-            ),
-          ],
-        ),
+        height: 60,
+        circle1Color: Colors.yellow,
+        circle2Color: Colors.black,
+        selectedIndex: controller.currentIndex.value,
+        onSelect: _onTabSelected,
+        items: [
+          BottomBarItem(
+            iconData: CupertinoIcons.chat_bubble,
+          ),
+          BottomBarItem(
+            iconData: CupertinoIcons.camera,
+          ),
+          BottomBarItem(
+            iconData: CupertinoIcons.person_2,
+          ),
+        ],
+                  ),
       ),
     );
   }
